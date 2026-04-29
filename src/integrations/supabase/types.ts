@@ -14,7 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      lesson_attempts: {
+        Row: {
+          ai_feedback: Json | null
+          ai_score: number
+          created_at: string
+          id: string
+          lesson_id: string
+          overall_score: number
+          pitch_score: number
+          user_id: string
+        }
+        Insert: {
+          ai_feedback?: Json | null
+          ai_score?: number
+          created_at?: string
+          id?: string
+          lesson_id: string
+          overall_score?: number
+          pitch_score?: number
+          user_id: string
+        }
+        Update: {
+          ai_feedback?: Json | null
+          ai_score?: number
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          overall_score?: number
+          pitch_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lesson_progress: {
+        Row: {
+          best_score: number
+          completed: boolean
+          id: string
+          lesson_id: string
+          stars: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          best_score?: number
+          completed?: boolean
+          id?: string
+          lesson_id: string
+          stars?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          best_score?: number
+          completed?: boolean
+          id?: string
+          lesson_id?: string
+          stars?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          current_streak: number
+          display_name: string | null
+          id: string
+          last_practice_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          display_name?: string | null
+          id: string
+          last_practice_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          display_name?: string | null
+          id?: string
+          last_practice_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
