@@ -1,0 +1,193 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import { LESSONS, UNITS } from "@/lib/lessons";
+import { Mic, LogOut, Star, Lock, Check, Flame } from "lucide-react";
+import mascot from "@/assets/mascot.png";
+
+export const Route = createFileRoute("/journey")({
+  head: () => ({
+    meta: [
+      { title: "Your singing journey — Vocaly" },
+      { name: "description", content: "Your personal singing learning path with progress tracking." },
+    ],
+  }),
+  component: Journey,
+});
+
+interface ProgressRow {
+  lesson_id: string;
+  best_score: number;
+  completed: boolean;
+  stars: number;
+}
+
+function Journey() {
+  const { user, loading, signOut } = useAuth();
+  const nav = useNavigate();
+  const [progress, setProgress] = useState<Record<string, ProgressRow>>({});
+  const [profile, setProfile] = useState<{ display_name: string | null; current_streak: number } | null>(null);
+
+  useEffect(() => {
+    if (!loading && !user) nav({ to: "/auth" });
+  }, [user, loading, nav]);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const [{ data: prog }, { data: prof }] = await Promise.all([
+        supabase.from("lesson_progress").select("lesson_id, best_score, completed, stars").eq("user_id", user.id),
+        supabase.from("profiles").select("display_name, current_streak").eq("id", user.id).maybeSingle(),
+      ]);
+      const map: Record<string, ProgressRow> = {};
+      (prog || []).forEach((p) => (map[p.lesson_id] = p as ProgressRow));
+      setProgress(map);
+      setProfile(prof || { display_name: null, current_streak: 0 });
+    })();
+  }, [user]);
+
+  if (loading || !user) {
+    return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
+  }
+
+  // Determine first uncompleted lesson (the "current" node)
+  const completedSet = new Set(Object.values(progress).filter((p) => p.completed).map((p) => p.lesson_id));
+  let foundCurrent = false;
+  const lessonsByUnit = UNITS.map((u) => ({
+    ...u,
+    lessons: LESSONS.filter((l) => l.unit === u.name),
+  }));
+
+  return (
+    <main className="min-h-screen bg-gradient-sunset pb-20">
+      {/* Header */}
+      <header className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-5 py-3">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground">
+              <Mic className="h-4 w-4" strokeWidth={2.5} />
+            </div>
+            <span className="font-display text-xl font-black">Vocaly</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 rounded-full bg-secondary/15 px-3 py-1 text-sm font-bold text-secondary">
+              <Flame className="h-4 w-4" /> {profile?.current_streak ?? 0}
+            </div>
+            <button
+              onClick={() => { signOut(); nav({ to: "/" }); }}
+              className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:bg-muted"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero greeting */}
+      <section className="mx-auto max-w-2xl px-5 pt-6">
+        <div className="flex items-center gap-4 rounded-3xl bg-card p-5 card-pop">
+          <img src={mascot} alt="" width={72} height={72} className="h-[72px] w-[72px] flex-shrink-0" />
+          <div>
+            <h1 className="font-display text-2xl font-black">
+              Hey {profile?.display_name || "singer"}!
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Pick up where you left off. Your voice is waiting.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Units & lesson nodes */}
+      <div className="mx-auto max-w-2xl space-y-10 px-5 pt-10">
+        {lessonsByUnit.map((unit) => (
+          <section key={unit.name}>
+            <div className="mb-5 flex items-center gap-3 px-2">
+              <span className="text-2xl">{unit.icon}</span>
+              <h2 className="font-display text-xl font-black">{unit.name}</h2>
+            </div>
+            <div className="space-y-4">
+              {unit.lessons.map((lesson, i) => {
+                const p = progress[lesson.id];
+                const done = p?.completed;
+                const isCurrent = !done && !foundCurrent;
+                if (isCurrent) foundCurrent = true;
+                const locked = !done && !isCurrent;
+                // Zigzag offset
+                const offset = i % 2 === 0 ? "ml-0" : "ml-auto mr-0";
+                return (
+                  <div key={lesson.id} className={`flex w-fit items-center gap-4 ${offset}`}>
+                    <LessonNode
+                      lessonId={lesson.id}
+                      title={lesson.title}
+                      subtitle={lesson.subtitle}
+                      stars={p?.stars ?? 0}
+                      locked={locked}
+                      done={!!done}
+                      isCurrent={isCurrent}
+                      reverse={i % 2 !== 0}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+
+        <div className="rounded-3xl bg-accent p-6 text-center card-pop">
+          <p className="font-display text-lg font-bold">More units coming soon 🎤</p>
+          <p className="mt-1 text-sm text-muted-foreground">Master the starter path to unlock advanced training.</p>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function LessonNode({
+  lessonId, title, subtitle, stars, locked, done, isCurrent, reverse,
+}: {
+  lessonId: string; title: string; subtitle: string; stars: number;
+  locked: boolean; done: boolean; isCurrent: boolean; reverse: boolean;
+}) {
+  const Inner = (
+    <div className={`flex items-center gap-4 ${reverse ? "flex-row-reverse" : ""}`}>
+      <div className="relative">
+        {isCurrent && <span className="absolute inset-0 -z-0 animate-pulse-ring rounded-full bg-primary/40" />}
+        <div
+          className={`relative grid h-20 w-20 place-items-center rounded-full text-2xl font-black ${
+            locked
+              ? "bg-muted text-muted-foreground"
+              : done
+                ? "bg-success text-success-foreground btn-pop-success"
+                : "bg-primary text-primary-foreground btn-pop"
+          }`}
+        >
+          {locked ? <Lock className="h-7 w-7" /> : done ? <Check className="h-9 w-9" strokeWidth={3} /> : <Mic className="h-8 w-8" />}
+        </div>
+      </div>
+      <div className={`max-w-[180px] ${reverse ? "text-right" : ""}`}>
+        <p className="font-display text-base font-black leading-tight">{title}</p>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+        {(done || stars > 0) && (
+          <div className={`mt-1 flex gap-0.5 ${reverse ? "justify-end" : ""}`}>
+            {[1, 2, 3].map((n) => (
+              <Star
+                key={n}
+                className={`h-4 w-4 ${n <= stars ? "fill-primary text-primary" : "text-muted-foreground/30"}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  if (locked) return <div className="opacity-60">{Inner}</div>;
+  return (
+    <Link to="/lesson/$lessonId" params={{ lessonId }} className="transition hover:scale-[1.02]">
+      {Inner}
+    </Link>
+  );
+}
