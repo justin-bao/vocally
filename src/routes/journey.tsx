@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LESSONS, UNITS } from "@/lib/lessons";
-import { Mic, LogOut, Star, Lock, Check, Flame } from "lucide-react";
+import { Mic, LogOut, Star, Lock, Check, Flame, Music, ChevronRight } from "lucide-react";
 import mascot from "@/assets/mascot.png";
 
 export const Route = createFileRoute("/journey")({
@@ -98,6 +98,20 @@ function Journey() {
             </p>
           </div>
         </div>
+
+        <Link
+          to="/practice"
+          className="mt-4 flex items-center gap-4 rounded-3xl bg-secondary p-5 text-secondary-foreground btn-pop-secondary transition hover:scale-[1.01]"
+        >
+          <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl bg-secondary-foreground/15">
+            <Music className="h-6 w-6" />
+          </div>
+          <div className="flex-1">
+            <p className="font-display text-lg font-black leading-tight">Free practice</p>
+            <p className="text-xs opacity-90">Sing anything — get instant AI coach feedback</p>
+          </div>
+          <ChevronRight className="h-5 w-5 opacity-80" />
+        </Link>
       </section>
 
       {/* Units & lesson nodes */}
