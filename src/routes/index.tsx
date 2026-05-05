@@ -7,9 +7,9 @@ import { Mic, Sparkles, Trophy, Activity } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Vocaly — Learn to sing, one lesson at a time" },
+      { title: "Vocally — Learn to sing, one lesson at a time" },
       { name: "description", content: "Bite-sized singing lessons with real-time pitch feedback and AI vocal coaching. Start free." },
-      { property: "og:title", content: "Vocaly — Learn to sing" },
+      { property: "og:title", content: "Vocally — Learn to sing" },
       { property: "og:description", content: "Real-time pitch + AI voice coaching. Start your singing journey today." },
     ],
   }),
@@ -31,7 +31,7 @@ function Landing() {
           <div className="grid h-9 w-9 place-items-center rounded-2xl bg-primary text-primary-foreground btn-pop-sm">
             <Mic className="h-5 w-5" strokeWidth={2.5} />
           </div>
-          <span className="font-display text-2xl font-black text-foreground">Vocaly</span>
+          <span className="font-display text-2xl font-black text-foreground">Vocally</span>
         </div>
         <Link
           to="/auth"
@@ -49,7 +49,7 @@ function Landing() {
             <span className="text-secondary">One note at a time.</span>
           </h1>
           <p className="mt-5 max-w-md text-lg text-muted-foreground">
-            Vocaly is the playful way to learn singing. Real-time pitch feedback, AI vocal coaching,
+            Vocally is the playful way to learn singing. Real-time pitch feedback, AI vocal coaching,
             and bite-sized lessons that actually fit into your day.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
@@ -79,7 +79,7 @@ function Landing() {
             <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl" />
             <img
               src={mascot}
-              alt="Vocaly the singing songbird mascot"
+              alt="Vocally the singing songbird mascot"
               width={420}
               height={420}
               className="relative animate-wobble drop-shadow-xl"

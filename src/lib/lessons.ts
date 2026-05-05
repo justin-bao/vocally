@@ -1,4 +1,4 @@
-// Lesson catalog for Vocaly — singing journey
+// Lesson catalog for Vocally — singing journey
 // Each lesson has a target: either holding a pitch (Hz/note) or a sequence
 
 export type LessonType = "hum" | "sustain" | "pitch-match" | "scale" | "interval" | "melody";

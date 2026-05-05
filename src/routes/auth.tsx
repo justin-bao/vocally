@@ -9,8 +9,8 @@ import { Mic } from "lucide-react";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Vocaly" },
-      { name: "description", content: "Sign in or create your free Vocaly account to start singing." },
+      { title: "Sign in — Vocally" },
+      { name: "description", content: "Sign in or create your free Vocally account to start singing." },
     ],
   }),
   component: AuthPage,
@@ -43,7 +43,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Welcome to Vocaly!");
+        toast.success("Welcome to Vocally!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -73,7 +73,7 @@ function AuthPage() {
         <div className="grid h-9 w-9 place-items-center rounded-2xl bg-primary text-primary-foreground">
           <Mic className="h-5 w-5" strokeWidth={2.5} />
         </div>
-        <span className="font-display text-2xl font-black">Vocaly</span>
+        <span className="font-display text-2xl font-black">Vocally</span>
       </Link>
 
       <div className="mx-auto mt-8 max-w-md rounded-3xl bg-card p-7 card-pop">

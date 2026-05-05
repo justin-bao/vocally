@@ -31,10 +31,10 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Vocaly — Learn to sing, one lesson at a time" },
+      { title: "Vocally — Learn to sing, one lesson at a time" },
       { name: "description", content: "Duolingo-style singing lessons with real-time pitch feedback and AI vocal coaching." },
       { name: "theme-color", content: "#FFB627" },
-      { property: "og:title", content: "Vocaly — Learn to sing" },
+      { property: "og:title", content: "Vocally — Learn to sing" },
       { property: "og:description", content: "Bite-sized singing lessons with live pitch feedback and AI coaching." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

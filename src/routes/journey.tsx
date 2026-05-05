@@ -9,7 +9,7 @@ import mascot from "@/assets/mascot.png";
 export const Route = createFileRoute("/journey")({
   head: () => ({
     meta: [
-      { title: "Your singing journey — Vocaly" },
+      { title: "Your singing journey — Vocally" },
       { name: "description", content: "Your personal singing learning path with progress tracking." },
     ],
   }),
@@ -68,7 +68,7 @@ function Journey() {
             <div className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground">
               <Mic className="h-4 w-4" strokeWidth={2.5} />
             </div>
-            <span className="font-display text-xl font-black">Vocaly</span>
+            <span className="font-display text-xl font-black">Vocally</span>
           </Link>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1 rounded-full bg-secondary/15 px-3 py-1 text-sm font-bold text-secondary">

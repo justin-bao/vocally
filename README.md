@@ -1,6 +1,6 @@
-# Vocaly
+# Vocally
 
-Vocaly is a playful singing practice app built around bite-sized lessons, real-time pitch feedback, and AI vocal coaching. Learners sign in, follow a guided lesson journey, record lesson attempts, earn stars, and can also use free practice mode to sing anything and receive structured feedback.
+Vocally is a playful singing practice app built around bite-sized lessons, real-time pitch feedback, and AI vocal coaching. Learners sign in, follow a guided lesson journey, record lesson attempts, earn stars, and can also use free practice mode to sing anything and receive structured feedback.
 
 ## Features
 

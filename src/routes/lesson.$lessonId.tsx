@@ -15,8 +15,8 @@ export const Route = createFileRoute("/lesson/$lessonId")({
     const lesson = getLesson(params.lessonId);
     return {
       meta: [
-        { title: `${lesson?.title ?? "Lesson"} — Vocaly` },
-        { name: "description", content: lesson?.subtitle ?? "Practice singing with Vocaly." },
+        { title: `${lesson?.title ?? "Lesson"} — Vocally` },
+        { name: "description", content: lesson?.subtitle ?? "Practice singing with Vocally." },
       ],
     };
   },

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/practice")({
   head: () => ({
     meta: [
-      { title: "Free practice — Vocaly" },
+      { title: "Free practice — Vocally" },
       { name: "description", content: "Sing freely and get instant AI vocal coach feedback." },
     ],
   }),
