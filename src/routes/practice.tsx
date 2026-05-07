@@ -121,7 +121,7 @@ function PracticePage() {
     setIsPlaying(false);
     setPeaks(null);
     setPhase("review");
-    computePeaks(audioBlob).then(setPeaks).catch((e) => console.warn("peaks failed", e));
+    computePeaks(audioBlob).then(setPeaks).catch((e: unknown) => console.warn("peaks failed", e));
   };
 
   const togglePlayback = () => {
