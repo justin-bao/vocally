@@ -78,6 +78,10 @@ function Profile() {
     ]);
 
     setProfile((profRes.data as Profile) ?? null);
+    if (profRes.data) {
+      setDraftMin((profRes.data as Profile).daily_goal_minutes ?? 5);
+      setDraftTakes((profRes.data as Profile).daily_goal_takes ?? 1);
+    }
 
     const free = freeRes.data ?? [];
     const songs = songRes.data ?? [];
