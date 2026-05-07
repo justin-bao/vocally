@@ -154,7 +154,7 @@ function UnitDetails() {
       const amap: Record<string, AttemptRow[]> = {};
       (atts || []).forEach((a) => {
         const list = amap[a.lesson_id] || (amap[a.lesson_id] = []);
-        if (list.length < 5) list.push(a as AttemptRow);
+        list.push(a as AttemptRow);
       });
       setAttemptsByLesson(amap);
     })();
