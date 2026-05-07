@@ -274,17 +274,35 @@ function UnitDetails() {
                     )}
                   </div>
                   {recent.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {recent.map((a) => (
-                        <span
-                          key={a.id}
-                          className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-foreground"
-                          title={new Date(a.created_at).toLocaleString()}
-                        >
-                          {new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {a.overall_score}
-                        </span>
-                      ))}
-                    </div>
+                    <>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {recent.map((a) => (
+                          <span
+                            key={a.id}
+                            className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-foreground"
+                            title={new Date(a.created_at).toLocaleString()}
+                          >
+                            {new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {a.overall_score}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-3 rounded-2xl bg-muted/40 p-3">
+                        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                          Last {recent.length} attempts
+                        </p>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                          {METRICS.map((m) => {
+                            const series = [...recent].reverse().map((a) => metricValue(a, m.key));
+                            return (
+                              <div key={m.key} className="flex items-center justify-between gap-2">
+                                <span className="text-[10px] font-bold text-muted-foreground">{m.label}</span>
+                                <Sparkline values={series} color={m.color} />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
