@@ -331,7 +331,42 @@ function LessonPage() {
           </div>
         </div>
 
-        {/* Pitch track viz */}
+        {/* Per-lesson stats & history */}
+        {(phase === "intro" || phase === "done") && lessonStats && lessonStats.attempts_count > 0 && (
+          <div className="rounded-3xl bg-card p-5 card-pop">
+            <div className="flex items-center justify-between">
+              <p className="font-display text-base font-black">Your progress</p>
+              <div className="flex gap-0.5">
+                {[1,2,3].map(n => (
+                  <Star key={n} className={`h-4 w-4 ${n <= lessonStats.stars ? "fill-primary text-primary" : "text-muted-foreground/25"}`} />
+                ))}
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+              <StatBox label="Best" value={lessonStats.best_score} />
+              <StatBox label="Tries" value={lessonStats.attempts_count} />
+              <StatBox label="Streak" value={lessonStats.current_streak} suffix="🔥" />
+              <StatBox label="Best 🔥" value={lessonStats.best_streak} />
+            </div>
+            {recentAttempts.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Recent attempts</p>
+                <ul className="mt-2 space-y-1">
+                  {recentAttempts.map(a => (
+                    <li key={a.id} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2 text-sm">
+                      <span className="text-muted-foreground">
+                        {new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                        {" · "}
+                        {new Date(a.created_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      <span className="font-display font-black tabular-nums">{a.overall_score}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
         {(phase === "recording" || phase === "ready" || phase === "listening") && (
           <PitchTrack
             samples={samples}
