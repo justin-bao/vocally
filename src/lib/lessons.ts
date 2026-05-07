@@ -22,6 +22,8 @@ export interface Lesson {
 const N = (note: string, freq: number) => ({ note, freq });
 
 // Comfortable range for beginners (mid range)
+const A3 = N("A3", 220.0);
+const B3 = N("B3", 246.94);
 const C4 = N("C4", 261.63);
 const D4 = N("D4", 293.66);
 const E4 = N("E4", 329.63);
@@ -30,6 +32,10 @@ const G4 = N("G4", 392.0);
 const A4 = N("A4", 440.0);
 const B4 = N("B4", 493.88);
 const C5 = N("C5", 523.25);
+const D5 = N("D5", 587.33);
+const E5 = N("E5", 659.25);
+const F5 = N("F5", 698.46);
+const G5 = N("G5", 783.99);
 
 const sec = (n: typeof C4, s: number) => ({ ...n, seconds: s });
 
