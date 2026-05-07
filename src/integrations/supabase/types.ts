@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      free_practice_attempts: {
+        Row: {
+          breath_control: number
+          created_at: string
+          description: string | null
+          duration_sec: number
+          id: string
+          next_exercise_suggestion: string | null
+          overall_score: number
+          pitch_accuracy: number
+          praise: Json
+          rhythm: number
+          smoothness: number
+          summary: string | null
+          tips: Json
+          tone_quality: number
+          user_id: string
+          what_you_sang: string | null
+        }
+        Insert: {
+          breath_control?: number
+          created_at?: string
+          description?: string | null
+          duration_sec?: number
+          id?: string
+          next_exercise_suggestion?: string | null
+          overall_score?: number
+          pitch_accuracy?: number
+          praise?: Json
+          rhythm?: number
+          smoothness?: number
+          summary?: string | null
+          tips?: Json
+          tone_quality?: number
+          user_id: string
+          what_you_sang?: string | null
+        }
+        Update: {
+          breath_control?: number
+          created_at?: string
+          description?: string | null
+          duration_sec?: number
+          id?: string
+          next_exercise_suggestion?: string | null
+          overall_score?: number
+          pitch_accuracy?: number
+          praise?: Json
+          rhythm?: number
+          smoothness?: number
+          summary?: string | null
+          tips?: Json
+          tone_quality?: number
+          user_id?: string
+          what_you_sang?: string | null
+        }
+        Relationships: []
+      }
       lesson_attempts: {
         Row: {
           ai_feedback: Json | null
