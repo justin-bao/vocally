@@ -106,27 +106,39 @@ export type Database = {
       }
       lesson_progress: {
         Row: {
+          attempts_count: number
           best_score: number
+          best_streak: number
           completed: boolean
+          current_streak: number
           id: string
+          last_attempt_date: string | null
           lesson_id: string
           stars: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          attempts_count?: number
           best_score?: number
+          best_streak?: number
           completed?: boolean
+          current_streak?: number
           id?: string
+          last_attempt_date?: string | null
           lesson_id: string
           stars?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          attempts_count?: number
           best_score?: number
+          best_streak?: number
           completed?: boolean
+          current_streak?: number
           id?: string
+          last_attempt_date?: string | null
           lesson_id?: string
           stars?: number
           updated_at?: string
