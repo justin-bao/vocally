@@ -24,10 +24,19 @@ interface SongRow {
   created_at: string;
 }
 
+interface AttemptRow {
+  id: string;
+  song_id: string;
+  overall_score: number;
+  mode: string;
+  created_at: string;
+}
+
 function SongsList() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
   const [songs, setSongs] = useState<SongRow[] | null>(null);
+  const [attemptsBySong, setAttemptsBySong] = useState<Record<string, AttemptRow[]>>({});
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -45,7 +54,24 @@ function SongsList() {
       .select("id, title, artist, image_url, source, created_at")
       .order("created_at", { ascending: false });
     if (error) console.error(error);
-    setSongs((data as SongRow[]) ?? []);
+    const songRows = (data as SongRow[]) ?? [];
+    setSongs(songRows);
+
+    if (songRows.length > 0) {
+      const { data: attempts } = await supabase
+        .from("song_attempts")
+        .select("id, song_id, overall_score, mode, created_at")
+        .in("song_id", songRows.map((s) => s.id))
+        .order("created_at", { ascending: false });
+      const map: Record<string, AttemptRow[]> = {};
+      (attempts ?? []).forEach((a) => {
+        const arr = map[a.song_id] ?? (map[a.song_id] = []);
+        if (arr.length < 3) arr.push(a as AttemptRow);
+      });
+      setAttemptsBySong(map);
+    } else {
+      setAttemptsBySong({});
+    }
   };
 
   const remove = async (id: string) => {
@@ -86,33 +112,76 @@ function SongsList() {
             </Link>
           </div>
         )}
-        {songs?.map((s) => (
-          <div key={s.id} className="flex items-center gap-3 rounded-3xl bg-card p-3 card-pop">
-            <Link to="/songs/$songId" params={{ songId: s.id }} className="flex flex-1 items-center gap-3">
-              {s.image_url ? (
-                <img src={s.image_url} alt="" className="h-14 w-14 flex-shrink-0 rounded-xl object-cover" />
-              ) : (
-                <div className="grid h-14 w-14 flex-shrink-0 place-items-center rounded-xl bg-muted">
-                  <Music2 className="h-6 w-6 text-muted-foreground" />
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-base font-black">{s.title}</p>
-                <p className="truncate text-xs text-muted-foreground">{s.artist || "—"} · {sourceLabel(s.source)}</p>
+        {songs?.map((s) => {
+          const recent = attemptsBySong[s.id] ?? [];
+          const best = recent.length ? Math.max(...recent.map((a) => a.overall_score)) : null;
+          return (
+            <div key={s.id} className="rounded-3xl bg-card p-3 card-pop">
+              <div className="flex items-center gap-3">
+                <Link to="/songs/$songId" params={{ songId: s.id }} className="flex flex-1 items-center gap-3">
+                  {s.image_url ? (
+                    <img src={s.image_url} alt="" className="h-14 w-14 flex-shrink-0 rounded-xl object-cover" />
+                  ) : (
+                    <div className="grid h-14 w-14 flex-shrink-0 place-items-center rounded-xl bg-muted">
+                      <Music2 className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-display text-base font-black">{s.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{s.artist || "—"} · {sourceLabel(s.source)}</p>
+                  </div>
+                </Link>
+                {best !== null && (
+                  <div className="flex flex-col items-end pr-1">
+                    <p className="font-display text-lg font-black tabular-nums text-primary leading-none">{best}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">best</p>
+                  </div>
+                )}
+                <button
+                  onClick={() => remove(s.id)}
+                  className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:bg-muted"
+                  aria-label="Remove"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
-            </Link>
-            <button
-              onClick={() => remove(s.id)}
-              className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:bg-muted"
-              aria-label="Remove"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        ))}
+
+              {recent.length > 0 && (
+                <Link
+                  to="/songs/$songId"
+                  params={{ songId: s.id }}
+                  className="mt-2 flex items-center gap-1.5 overflow-x-auto rounded-2xl bg-muted/40 px-2 py-2"
+                >
+                  {recent.map((a) => (
+                    <div
+                      key={a.id}
+                      className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-background px-2 py-1"
+                      title={`${a.mode === "sing_along" ? "Sing-along" : "A cappella"} · ${new Date(a.created_at).toLocaleString()}`}
+                    >
+                      <span className="font-display text-sm font-black tabular-nums text-primary">{a.overall_score}</span>
+                      <span className="text-[10px] text-muted-foreground">{relativeTime(a.created_at)}</span>
+                    </div>
+                  ))}
+                </Link>
+              )}
+            </div>
+          );
+        })}
       </div>
     </main>
   );
+}
+
+function relativeTime(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "now";
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 function sourceLabel(s: string) {
