@@ -111,11 +111,11 @@ function UnitDetails() {
           .in("lesson_id", ids),
         supabase
           .from("lesson_attempts")
-          .select("id, lesson_id, overall_score, created_at")
+          .select("id, lesson_id, overall_score, pitch_score, ai_feedback, created_at")
           .eq("user_id", user.id)
           .in("lesson_id", ids)
           .order("created_at", { ascending: false })
-          .limit(100),
+          .limit(200),
       ]);
       const pmap: Record<string, ProgressRow> = {};
       (prog || []).forEach((p) => (pmap[p.lesson_id] = p as ProgressRow));
@@ -123,7 +123,7 @@ function UnitDetails() {
       const amap: Record<string, AttemptRow[]> = {};
       (atts || []).forEach((a) => {
         const list = amap[a.lesson_id] || (amap[a.lesson_id] = []);
-        if (list.length < 3) list.push(a as AttemptRow);
+        if (list.length < 5) list.push(a as AttemptRow);
       });
       setAttemptsByLesson(amap);
     })();
