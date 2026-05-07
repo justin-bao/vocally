@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { analyzeFreePractice } from "@/server/free-practice.functions";
-import { ArrowLeft, Mic, Square, RotateCcw, Sparkles, Loader2, Star, Music } from "lucide-react";
+import { ArrowLeft, Mic, Square, RotateCcw, Sparkles, Loader2, Star, Music, Play, Pause, Send } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/practice")({
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/practice")({
   component: PracticePage,
 });
 
-type Phase = "setup" | "recording" | "analyzing" | "done";
+type Phase = "setup" | "recording" | "review" | "analyzing" | "done";
 
 interface FreeResult {
   overall_score: number;
@@ -43,12 +43,18 @@ function PracticePage() {
   const [elapsed, setElapsed] = useState(0);
   const [result, setResult] = useState<FreeResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [recordedDuration, setRecordedDuration] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackTime, setPlaybackTime] = useState(0);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const tickRef = useRef<number | null>(null);
   const startedAtRef = useRef<number>(0);
+  const audioBlobRef = useRef<Blob | null>(null);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -59,11 +65,15 @@ function PracticePage() {
       if (recorderRef.current?.state === "recording") recorderRef.current.stop();
       streamRef.current?.getTracks().forEach((t) => t.stop());
       if (tickRef.current) clearInterval(tickRef.current);
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startRecording = async () => {
     try {
+      if (audioUrl) { URL.revokeObjectURL(audioUrl); setAudioUrl(null); }
+      audioBlobRef.current = null;
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true },
       });
@@ -90,7 +100,6 @@ function PracticePage() {
 
   const stopRecording = async () => {
     if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
-    setPhase("analyzing");
 
     const rec = recorderRef.current;
     if (!rec) { setPhase("setup"); return; }
@@ -102,6 +111,26 @@ function PracticePage() {
       else resolve(new Blob(chunksRef.current, { type: rec.mimeType }));
     });
     streamRef.current?.getTracks().forEach((t) => t.stop());
+
+    audioBlobRef.current = audioBlob;
+    const url = URL.createObjectURL(audioBlob);
+    setAudioUrl(url);
+    setRecordedDuration(finalDuration);
+    setPlaybackTime(0);
+    setIsPlaying(false);
+    setPhase("review");
+  };
+
+  const togglePlayback = () => {
+    const el = audioElRef.current;
+    if (!el) return;
+    if (el.paused) el.play(); else el.pause();
+  };
+
+  const submitForAnalysis = async () => {
+    const audioBlob = audioBlobRef.current;
+    if (!audioBlob) return;
+    setPhase("analyzing");
 
     let base64 = "";
     let mimeType = "audio/wav";
@@ -120,7 +149,7 @@ function PracticePage() {
           audioBase64: base64,
           mimeType,
           description: description.trim(),
-          durationSec: finalDuration,
+          durationSec: recordedDuration,
         },
       });
       setResult(ai);
@@ -128,7 +157,7 @@ function PracticePage() {
         const { error: insErr } = await supabase.from("free_practice_attempts").insert({
           user_id: user.id,
           description: description.trim() || null,
-          duration_sec: finalDuration,
+          duration_sec: recordedDuration,
           overall_score: ai.overall_score,
           pitch_accuracy: ai.pitch_accuracy,
           breath_control: ai.breath_control,
@@ -153,10 +182,16 @@ function PracticePage() {
   };
 
   const reset = () => {
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    setAudioUrl(null);
+    audioBlobRef.current = null;
     setPhase("setup");
     setResult(null);
     setAiError(null);
     setElapsed(0);
+    setRecordedDuration(0);
+    setPlaybackTime(0);
+    setIsPlaying(false);
     chunksRef.current = [];
   };
 
@@ -237,8 +272,64 @@ function PracticePage() {
               onClick={stopRecording}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary px-6 py-5 text-lg font-extrabold uppercase tracking-wide text-secondary-foreground btn-pop-secondary"
             >
-              <Square className="h-5 w-5 fill-current" /> Stop & analyze
+              <Square className="h-5 w-5 fill-current" /> Stop recording
             </button>
+          </div>
+        )}
+
+        {phase === "review" && audioUrl && (
+          <div className="space-y-4">
+            <div className="rounded-3xl bg-card p-6 card-pop">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Listen back</p>
+              <p className="mt-1 font-display text-lg font-black">Review your take</p>
+
+              <audio
+                ref={audioElRef}
+                src={audioUrl}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onEnded={() => { setIsPlaying(false); setPlaybackTime(recordedDuration); }}
+                onTimeUpdate={(e) => setPlaybackTime((e.target as HTMLAudioElement).currentTime)}
+                className="hidden"
+              />
+
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  onClick={togglePlayback}
+                  className="grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground btn-pop"
+                  aria-label={isPlaying ? "Pause" : "Play"}
+                >
+                  {isPlaying ? <Pause className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 fill-current translate-x-0.5" />}
+                </button>
+                <div className="flex-1">
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full bg-primary transition-all"
+                      style={{ width: `${recordedDuration ? Math.min(100, (playbackTime / recordedDuration) * 100) : 0}%` }}
+                    />
+                  </div>
+                  <div className="mt-1 flex justify-between text-xs font-bold tabular-nums text-muted-foreground">
+                    <span>{playbackTime.toFixed(1)}s</span>
+                    <span>{recordedDuration.toFixed(1)}s</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={startRecording}
+                className="flex flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-border bg-card px-5 py-4 font-extrabold uppercase tracking-wide text-foreground card-pop"
+              >
+                <RotateCcw className="h-5 w-5" /> Re-record
+              </button>
+              <button
+                onClick={submitForAnalysis}
+                className="flex flex-[1.4] items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-4 font-extrabold uppercase tracking-wide text-primary-foreground btn-pop"
+              >
+                <Send className="h-5 w-5" /> Get feedback
+              </button>
+            </div>
           </div>
         )}
 
