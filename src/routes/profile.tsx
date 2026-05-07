@@ -224,7 +224,7 @@ function Profile() {
             <div className="mt-3 flex items-end gap-1 h-16">
               {agg.recentDays.map((d) => {
                 const h = d.count > 0 ? Math.max(15, (d.count / maxDay) * 100) : 8;
-                const isToday = d.date === today;
+                const isToday = d.date === todayStr;
                 return (
                   <div
                     key={d.date}
