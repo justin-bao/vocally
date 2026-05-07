@@ -469,7 +469,16 @@ function UnitDetails() {
         })}
       </section>
 
-      <Dialog open={!!expandedLessonId} onOpenChange={(open) => !open && setExpandedLessonId(null)}>
+      <Dialog
+        open={!!expandedLessonId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setExpandedLessonId(null);
+            setModalSkill("all");
+            setModalMaxScore(100);
+          }
+        }}
+      >
         <DialogContent className="max-h-[85vh] overflow-hidden p-0 sm:max-w-md">
           {(() => {
             const lesson = lessons.find((l) => l.id === expandedLessonId);
