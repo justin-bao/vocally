@@ -35,7 +35,54 @@ interface AttemptRow {
   id: string;
   lesson_id: string;
   overall_score: number;
+  pitch_score: number | null;
+  ai_feedback: { breath_control?: number; tone_quality?: number; smoothness?: number } | null;
   created_at: string;
+}
+
+type MetricKey = "pitch" | "breath" | "tone" | "smooth";
+const METRICS: { key: MetricKey; label: string; color: string }[] = [
+  { key: "pitch", label: "Pitch", color: "hsl(var(--primary))" },
+  { key: "breath", label: "Breath", color: "hsl(var(--secondary))" },
+  { key: "tone", label: "Tone", color: "hsl(var(--success))" },
+  { key: "smooth", label: "Smooth", color: "hsl(var(--accent))" },
+];
+
+function metricValue(a: AttemptRow, key: MetricKey): number | null {
+  if (key === "pitch") return a.pitch_score ?? null;
+  if (key === "breath") return a.ai_feedback?.breath_control ?? null;
+  if (key === "tone") return a.ai_feedback?.tone_quality ?? null;
+  return a.ai_feedback?.smoothness ?? null;
+}
+
+function Sparkline({ values, color }: { values: (number | null)[]; color: string }) {
+  const w = 80;
+  const h = 24;
+  const valid = values.map((v, i) => ({ v, i })).filter((p) => p.v != null) as { v: number; i: number }[];
+  if (valid.length === 0) {
+    return <div className="h-6 w-20 rounded bg-muted/50" />;
+  }
+  const stepX = values.length > 1 ? w / (values.length - 1) : 0;
+  const points = valid.map((p) => `${(p.i * stepX).toFixed(1)},${(h - (p.v / 100) * h).toFixed(1)}`).join(" ");
+  const last = valid[valid.length - 1];
+  const lastX = last.i * stepX;
+  const lastY = h - (last.v / 100) * h;
+  const first = valid[0].v;
+  const delta = last.v - first;
+  return (
+    <div className="flex items-center gap-1.5">
+      <svg width={w} height={h} className="overflow-visible">
+        {valid.length > 1 && <polyline fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" points={points} />}
+        <circle cx={lastX} cy={lastY} r={2} fill={color} />
+      </svg>
+      <span className="font-mono text-[10px] font-bold tabular-nums" style={{ color }}>{last.v}</span>
+      {valid.length > 1 && (
+        <span className={`text-[9px] font-bold ${delta > 0 ? "text-success" : delta < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+          {delta > 0 ? "▲" : delta < 0 ? "▼" : "•"}{Math.abs(delta)}
+        </span>
+      )}
+    </div>
+  );
 }
 
 function UnitDetails() {
@@ -64,11 +111,11 @@ function UnitDetails() {
           .in("lesson_id", ids),
         supabase
           .from("lesson_attempts")
-          .select("id, lesson_id, overall_score, created_at")
+          .select("id, lesson_id, overall_score, pitch_score, ai_feedback, created_at")
           .eq("user_id", user.id)
           .in("lesson_id", ids)
           .order("created_at", { ascending: false })
-          .limit(100),
+          .limit(200),
       ]);
       const pmap: Record<string, ProgressRow> = {};
       (prog || []).forEach((p) => (pmap[p.lesson_id] = p as ProgressRow));
@@ -76,7 +123,7 @@ function UnitDetails() {
       const amap: Record<string, AttemptRow[]> = {};
       (atts || []).forEach((a) => {
         const list = amap[a.lesson_id] || (amap[a.lesson_id] = []);
-        if (list.length < 3) list.push(a as AttemptRow);
+        if (list.length < 5) list.push(a as AttemptRow);
       });
       setAttemptsByLesson(amap);
     })();
@@ -227,17 +274,35 @@ function UnitDetails() {
                     )}
                   </div>
                   {recent.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {recent.map((a) => (
-                        <span
-                          key={a.id}
-                          className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-foreground"
-                          title={new Date(a.created_at).toLocaleString()}
-                        >
-                          {new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {a.overall_score}
-                        </span>
-                      ))}
-                    </div>
+                    <>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {recent.map((a) => (
+                          <span
+                            key={a.id}
+                            className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-foreground"
+                            title={new Date(a.created_at).toLocaleString()}
+                          >
+                            {new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {a.overall_score}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="mt-3 rounded-2xl bg-muted/40 p-3">
+                        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                          Last {recent.length} attempts
+                        </p>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                          {METRICS.map((m) => {
+                            const series = [...recent].reverse().map((a) => metricValue(a, m.key));
+                            return (
+                              <div key={m.key} className="flex items-center justify-between gap-2">
+                                <span className="text-[10px] font-bold text-muted-foreground">{m.label}</span>
+                                <Sparkline values={series} color={m.color} />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
