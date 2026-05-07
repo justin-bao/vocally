@@ -138,6 +138,8 @@ export type Database = {
         Row: {
           created_at: string
           current_streak: number
+          daily_goal_minutes: number
+          daily_goal_takes: number
           display_name: string | null
           id: string
           last_practice_date: string | null
@@ -146,6 +148,8 @@ export type Database = {
         Insert: {
           created_at?: string
           current_streak?: number
+          daily_goal_minutes?: number
+          daily_goal_takes?: number
           display_name?: string | null
           id: string
           last_practice_date?: string | null
@@ -154,6 +158,8 @@ export type Database = {
         Update: {
           created_at?: string
           current_streak?: number
+          daily_goal_minutes?: number
+          daily_goal_takes?: number
           display_name?: string | null
           id?: string
           last_practice_date?: string | null

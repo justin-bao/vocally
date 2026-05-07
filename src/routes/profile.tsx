@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LESSONS } from "@/lib/lessons";
-import { ArrowLeft, Flame, Star, Mic, Music2, Trophy, Calendar, Sparkles, LogOut } from "lucide-react";
+import { ArrowLeft, Flame, Star, Mic, Music2, Trophy, Calendar, Sparkles, LogOut, Target, Pencil, Check, X } from "lucide-react";
+import { toast } from "sonner";
 import mascot from "@/assets/mascot.png";
 
 export const Route = createFileRoute("/profile")({
@@ -21,6 +22,13 @@ interface Profile {
   current_streak: number;
   last_practice_date: string | null;
   created_at: string;
+  daily_goal_minutes: number;
+  daily_goal_takes: number;
+}
+
+interface TodayProgress {
+  minutes: number;
+  takes: number;
 }
 
 interface Aggregates {
@@ -43,6 +51,11 @@ function Profile() {
   const nav = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [agg, setAgg] = useState<Aggregates | null>(null);
+  const [today, setToday] = useState<TodayProgress>({ minutes: 0, takes: 0 });
+  const [editGoal, setEditGoal] = useState(false);
+  const [draftMin, setDraftMin] = useState(5);
+  const [draftTakes, setDraftTakes] = useState(1);
+  const [savingGoal, setSavingGoal] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -56,7 +69,7 @@ function Profile() {
 
   const load = async () => {
     const [profRes, freeRes, songRes, lessonRes, progressRes, songsRes] = await Promise.all([
-      supabase.from("profiles").select("display_name, current_streak, last_practice_date, created_at").eq("id", user!.id).maybeSingle(),
+      supabase.from("profiles").select("display_name, current_streak, last_practice_date, created_at, daily_goal_minutes, daily_goal_takes").eq("id", user!.id).maybeSingle(),
       supabase.from("free_practice_attempts").select("overall_score, duration_sec, created_at").eq("user_id", user!.id),
       supabase.from("song_attempts").select("overall_score, duration_sec, created_at").eq("user_id", user!.id),
       supabase.from("lesson_attempts").select("overall_score, created_at").eq("user_id", user!.id),
@@ -65,6 +78,10 @@ function Profile() {
     ]);
 
     setProfile((profRes.data as Profile) ?? null);
+    if (profRes.data) {
+      setDraftMin((profRes.data as Profile).daily_goal_minutes ?? 5);
+      setDraftTakes((profRes.data as Profile).daily_goal_takes ?? 1);
+    }
 
     const free = freeRes.data ?? [];
     const songs = songRes.data ?? [];
@@ -101,6 +118,18 @@ function Profile() {
     }
     const daysActive = Array.from(counts.values()).filter((n) => n > 0).length;
 
+    // Today progress
+    const todayKey = dayKey(new Date());
+    let todayMinutes = 0;
+    let todayTakes = 0;
+    allWithScore.forEach((a) => {
+      if (dayKey(new Date(a.at)) === todayKey) {
+        todayTakes += 1;
+        todayMinutes += (a.dur || 0) / 60;
+      }
+    });
+    setToday({ minutes: Math.round(todayMinutes * 10) / 10, takes: todayTakes });
+
     setAgg({
       totalAttempts,
       totalMinutes: Math.round(totalSeconds / 60),
@@ -117,16 +146,34 @@ function Profile() {
     });
   };
 
+  const saveGoal = async () => {
+    if (!user) return;
+    const min = Math.max(1, Math.min(120, Math.round(draftMin)));
+    const takes = Math.max(1, Math.min(20, Math.round(draftTakes)));
+    setSavingGoal(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ daily_goal_minutes: min, daily_goal_takes: takes })
+      .eq("id", user.id);
+    setSavingGoal(false);
+    if (error) {
+      toast.error("Couldn't save goal");
+      return;
+    }
+    setProfile((p) => (p ? { ...p, daily_goal_minutes: min, daily_goal_takes: takes } : p));
+    setEditGoal(false);
+    toast.success("Goal updated");
+  };
   if (loading || !user) {
     return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const todayStr = new Date().toISOString().slice(0, 10);
   const y = new Date(); y.setDate(y.getDate() - 1);
   const yStr = y.toISOString().slice(0, 10);
-  const streakActive = profile?.last_practice_date === today || profile?.last_practice_date === yStr;
+  const streakActive = profile?.last_practice_date === todayStr || profile?.last_practice_date === yStr;
   const streak = profile?.current_streak ?? 0;
-  const practicedToday = profile?.last_practice_date === today;
+  const practicedToday = profile?.last_practice_date === todayStr;
   const totalLessons = LESSONS.length;
 
   const maxDay = agg ? Math.max(1, ...agg.recentDays.map((d) => d.count)) : 1;
@@ -202,7 +249,72 @@ function Profile() {
           )}
         </div>
 
-        {/* Activity heatmap (last 14 days) */}
+        {/* Daily goal */}
+        {profile && (() => {
+          const goalMin = profile.daily_goal_minutes ?? 5;
+          const goalTakes = profile.daily_goal_takes ?? 1;
+          const minPct = Math.min(100, (today.minutes / goalMin) * 100);
+          const takesPct = Math.min(100, (today.takes / goalTakes) * 100);
+          const minHit = today.minutes >= goalMin;
+          const takesHit = today.takes >= goalTakes;
+          const allHit = minHit && takesHit;
+          return (
+            <div className="rounded-3xl bg-card p-5 card-pop">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <Target className="h-3.5 w-3.5" /> Today's goal
+                </div>
+                {!editGoal ? (
+                  <button
+                    onClick={() => setEditGoal(true)}
+                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-muted-foreground hover:bg-muted"
+                  >
+                    <Pencil className="h-3 w-3" /> Edit
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => { setEditGoal(false); setDraftMin(goalMin); setDraftTakes(goalTakes); }}
+                      className="grid h-7 w-7 place-items-center rounded-lg text-muted-foreground hover:bg-muted"
+                      aria-label="Cancel"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={saveGoal}
+                      disabled={savingGoal}
+                      className="grid h-7 w-7 place-items-center rounded-lg bg-primary text-primary-foreground disabled:opacity-50"
+                      aria-label="Save"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {!editGoal ? (
+                <>
+                  {allHit && (
+                    <p className="mt-3 rounded-2xl bg-success/15 p-3 text-sm font-bold text-success">
+                      🎉 Goal reached! Great work today.
+                    </p>
+                  )}
+                  <div className="mt-3 space-y-3">
+                    <GoalBar label="Minutes sung" current={today.minutes} goal={goalMin} pct={minPct} hit={minHit} unit="min" />
+                    <GoalBar label="Takes recorded" current={today.takes} goal={goalTakes} pct={takesPct} hit={takesHit} />
+                  </div>
+                </>
+              ) : (
+                <div className="mt-4 space-y-4">
+                  <GoalEditor label="Minutes per day" value={draftMin} onChange={setDraftMin} min={1} max={60} unit="min" />
+                  <GoalEditor label="Takes per day" value={draftTakes} onChange={setDraftTakes} min={1} max={10} />
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+
         {agg && (
           <div className="rounded-3xl bg-card p-5 card-pop">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -211,7 +323,7 @@ function Profile() {
             <div className="mt-3 flex items-end gap-1 h-16">
               {agg.recentDays.map((d) => {
                 const h = d.count > 0 ? Math.max(15, (d.count / maxDay) * 100) : 8;
-                const isToday = d.date === today;
+                const isToday = d.date === todayStr;
                 return (
                   <div
                     key={d.date}
@@ -320,3 +432,53 @@ function Row({ label, value }: { label: string; value: number | string }) {
     </div>
   );
 }
+
+function GoalBar({
+  label, current, goal, pct, hit, unit,
+}: { label: string; current: number; goal: number; pct: number; hit: boolean; unit?: string }) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-xs">
+        <span className="font-bold text-muted-foreground">{label}</span>
+        <span className={`font-display font-black tabular-nums ${hit ? "text-success" : ""}`}>
+          {current}{unit ? ` ${unit}` : ""} / {goal}{unit ? ` ${unit}` : ""}
+        </span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full transition-all ${hit ? "bg-success" : "bg-primary"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function GoalEditor({
+  label, value, onChange, min, max, unit,
+}: { label: string; value: number; onChange: (v: number) => void; min: number; max: number; unit?: string }) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
+        <span className="font-display text-lg font-black tabular-nums">
+          {value}{unit ? ` ${unit}` : ""}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={1}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value, 10))}
+        className="w-full accent-primary"
+      />
+      <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+        <span>{min}</span>
+        <span>{max}</span>
+      </div>
+    </div>
+  );
+}
+
