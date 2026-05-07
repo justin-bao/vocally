@@ -1,0 +1,125 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Plus, Music2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/songs/")({
+  head: () => ({
+    meta: [
+      { title: "My songs — Vocally" },
+      { name: "description", content: "Your imported songs and per-song coaching." },
+    ],
+  }),
+  component: SongsList,
+});
+
+interface SongRow {
+  id: string;
+  title: string;
+  artist: string | null;
+  image_url: string | null;
+  source: string;
+  created_at: string;
+}
+
+function SongsList() {
+  const { user, loading } = useAuth();
+  const nav = useNavigate();
+  const [songs, setSongs] = useState<SongRow[] | null>(null);
+
+  useEffect(() => {
+    if (!loading && !user) nav({ to: "/auth" });
+  }, [user, loading, nav]);
+
+  useEffect(() => {
+    if (!user) return;
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const load = async () => {
+    const { data, error } = await supabase
+      .from("songs")
+      .select("id, title, artist, image_url, source, created_at")
+      .order("created_at", { ascending: false });
+    if (error) console.error(error);
+    setSongs((data as SongRow[]) ?? []);
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Remove this song from your library?")) return;
+    const { error } = await supabase.from("songs").delete().eq("id", id);
+    if (error) toast.error("Couldn't remove song");
+    else { toast.success("Removed"); void load(); }
+  };
+
+  return (
+    <main className="min-h-screen bg-gradient-sunset pb-24">
+      <header className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-5 py-3">
+          <Link to="/journey" className="grid h-9 w-9 place-items-center rounded-xl text-foreground hover:bg-muted">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <p className="font-display text-base font-black">My songs</p>
+          <Link to="/songs/import" className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground btn-pop">
+            <Plus className="h-5 w-5" />
+          </Link>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-2xl space-y-3 px-5 pt-6">
+        {songs === null && (
+          <div className="rounded-3xl bg-card p-6 text-center text-muted-foreground card-pop">Loading…</div>
+        )}
+        {songs && songs.length === 0 && (
+          <div className="rounded-3xl bg-card p-8 text-center card-pop">
+            <Music2 className="mx-auto h-8 w-8 text-muted-foreground" />
+            <p className="mt-3 font-display text-lg font-black">Build your library</p>
+            <p className="mt-1 text-sm text-muted-foreground">Import a song to start coaching.</p>
+            <Link
+              to="/songs/import"
+              className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-3 font-extrabold uppercase tracking-wide text-primary-foreground btn-pop"
+            >
+              <Plus className="h-4 w-4" /> Import a song
+            </Link>
+          </div>
+        )}
+        {songs?.map((s) => (
+          <div key={s.id} className="flex items-center gap-3 rounded-3xl bg-card p-3 card-pop">
+            <Link to="/songs/$songId" params={{ songId: s.id }} className="flex flex-1 items-center gap-3">
+              {s.image_url ? (
+                <img src={s.image_url} alt="" className="h-14 w-14 flex-shrink-0 rounded-xl object-cover" />
+              ) : (
+                <div className="grid h-14 w-14 flex-shrink-0 place-items-center rounded-xl bg-muted">
+                  <Music2 className="h-6 w-6 text-muted-foreground" />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-display text-base font-black">{s.title}</p>
+                <p className="truncate text-xs text-muted-foreground">{s.artist || "—"} · {sourceLabel(s.source)}</p>
+              </div>
+            </Link>
+            <button
+              onClick={() => remove(s.id)}
+              className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:bg-muted"
+              aria-label="Remove"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+function sourceLabel(s: string) {
+  switch (s) {
+    case "itunes": return "iTunes";
+    case "youtube": return "YouTube";
+    case "upload": return "Upload";
+    default: return s;
+  }
+}
