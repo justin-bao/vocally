@@ -211,7 +211,11 @@ function Journey() {
           const unitComplete = total > 0 && doneCount === total;
           return (
           <section key={unit.name}>
-            <div className="mb-4 rounded-3xl bg-card p-5 card-pop">
+            <Link
+              to="/unit/$unitSlug"
+              params={{ unitSlug: unit.name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") }}
+              className="mb-4 block rounded-3xl bg-card p-5 card-pop transition hover:scale-[1.005]"
+            >
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{unit.icon}</span>
                 <div className="flex-1">
@@ -220,10 +224,12 @@ function Journey() {
                     {doneCount} / {total} lessons · {pct}%
                   </p>
                 </div>
-                {unitComplete && (
+                {unitComplete ? (
                   <span className="rounded-full bg-success/15 px-2.5 py-1 text-xs font-black text-success">
                     Complete
                   </span>
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
               </div>
               <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
