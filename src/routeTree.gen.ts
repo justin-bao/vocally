@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as HistoryRouteImport } from './routes/history'
@@ -19,6 +20,11 @@ import { Route as SongsImportRouteImport } from './routes/songs.import'
 import { Route as SongsSongIdRouteImport } from './routes/songs.$songId'
 import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
 
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PracticeRoute = PracticeRouteImport.update({
   id: '/practice',
   path: '/practice',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/journey': typeof JourneyRoute
   '/practice': typeof PracticeRoute
+  '/profile': typeof ProfileRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/songs/$songId': typeof SongsSongIdRoute
   '/songs/import': typeof SongsImportRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/journey': typeof JourneyRoute
   '/practice': typeof PracticeRoute
+  '/profile': typeof ProfileRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/songs/$songId': typeof SongsSongIdRoute
   '/songs/import': typeof SongsImportRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/journey': typeof JourneyRoute
   '/practice': typeof PracticeRoute
+  '/profile': typeof ProfileRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/songs/$songId': typeof SongsSongIdRoute
   '/songs/import': typeof SongsImportRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/journey'
     | '/practice'
+    | '/profile'
     | '/lesson/$lessonId'
     | '/songs/$songId'
     | '/songs/import'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/journey'
     | '/practice'
+    | '/profile'
     | '/lesson/$lessonId'
     | '/songs/$songId'
     | '/songs/import'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/journey'
     | '/practice'
+    | '/profile'
     | '/lesson/$lessonId'
     | '/songs/$songId'
     | '/songs/import'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   JourneyRoute: typeof JourneyRoute
   PracticeRoute: typeof PracticeRoute
+  ProfileRoute: typeof ProfileRoute
   LessonLessonIdRoute: typeof LessonLessonIdRoute
   SongsSongIdRoute: typeof SongsSongIdRoute
   SongsImportRoute: typeof SongsImportRoute
@@ -149,6 +162,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/practice': {
       id: '/practice'
       path: '/practice'
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   JourneyRoute: JourneyRoute,
   PracticeRoute: PracticeRoute,
+  ProfileRoute: ProfileRoute,
   LessonLessonIdRoute: LessonLessonIdRoute,
   SongsSongIdRoute: SongsSongIdRoute,
   SongsImportRoute: SongsImportRoute,
