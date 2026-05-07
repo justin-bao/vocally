@@ -246,8 +246,121 @@ function UnitDetails() {
       </section>
 
       <section className="mx-auto mt-6 max-w-2xl space-y-3 px-5">
-        <p className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">All lessons</p>
-        {lessons.map((lesson) => {
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">All lessons</p>
+          <p className="text-[10px] font-bold text-muted-foreground">
+            {filteredLessons.length} / {lessons.length}
+          </p>
+        </div>
+
+        <div className="rounded-3xl bg-card p-3 card-pop space-y-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search lessons…"
+              className="h-10 w-full rounded-2xl bg-muted pl-9 pr-9 text-sm font-medium outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-background"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Status</p>
+            <div className="flex gap-1.5">
+              {([
+                { k: "all", label: "All" },
+                { k: "done", label: "Completed" },
+                { k: "todo", label: "Not yet" },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.k}
+                  type="button"
+                  onClick={() => setStatusFilter(opt.k)}
+                  className={`flex-1 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                    statusFilter === opt.k
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Min best score</p>
+              <p className="font-mono text-xs font-bold tabular-nums">{minBest}</p>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={minBest}
+              onChange={(e) => setMinBest(Number(e.target.value))}
+              className="mt-1 w-full accent-primary"
+            />
+          </div>
+
+          <div>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Sort by</p>
+            <div className="flex gap-1.5">
+              {([
+                { k: "default", label: "Order" },
+                { k: "recent", label: "Most recent" },
+                { k: "best", label: "Best score" },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.k}
+                  type="button"
+                  onClick={() => setSortBy(opt.k)}
+                  className={`flex-1 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                    sortBy === opt.k
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filtersActive && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setStatusFilter("all");
+                setMinBest(0);
+                setSortBy("default");
+              }}
+              className="w-full rounded-xl bg-muted/60 px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted"
+            >
+              Reset filters
+            </button>
+          )}
+        </div>
+
+        {filteredLessons.length === 0 ? (
+          <div className="rounded-3xl bg-card p-6 text-center text-sm text-muted-foreground card-pop">
+            No lessons match your filters.
+          </div>
+        ) : null}
+        {filteredLessons.map((lesson) => {
           const p = progress[lesson.id];
           const done = !!p?.completed;
           const stars = p?.stars ?? 0;
