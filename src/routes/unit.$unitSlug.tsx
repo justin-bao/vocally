@@ -100,6 +100,8 @@ function UnitDetails() {
   const [minBest, setMinBest] = useState(0);
   const [sortBy, setSortBy] = useState<"default" | "recent" | "best">("default");
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
+  const [modalSkill, setModalSkill] = useState<"all" | "pitch" | "breath" | "tone" | "smooth">("all");
+  const [modalMaxScore, setModalMaxScore] = useState(100);
 
   const filteredLessons = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -467,13 +469,42 @@ function UnitDetails() {
         })}
       </section>
 
-      <Dialog open={!!expandedLessonId} onOpenChange={(open) => !open && setExpandedLessonId(null)}>
+      <Dialog
+        open={!!expandedLessonId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setExpandedLessonId(null);
+            setModalSkill("all");
+            setModalMaxScore(100);
+          }
+        }}
+      >
         <DialogContent className="max-h-[85vh] overflow-hidden p-0 sm:max-w-md">
           {(() => {
             const lesson = lessons.find((l) => l.id === expandedLessonId);
             if (!lesson) return null;
             const all = attemptsByLesson[lesson.id] || [];
             const p = progress[lesson.id];
+            const skillVal = (a: AttemptRow): number | null => {
+              if (modalSkill === "pitch") return a.pitch_score ?? null;
+              if (modalSkill === "breath") return a.ai_feedback?.breath_control ?? null;
+              if (modalSkill === "tone") return a.ai_feedback?.tone_quality ?? null;
+              if (modalSkill === "smooth") return a.ai_feedback?.smoothness ?? null;
+              return a.overall_score;
+            };
+            const filtered = all.filter((a) => {
+              const v = skillVal(a);
+              if (v == null) return false;
+              return v <= modalMaxScore;
+            });
+            const filterActive = modalSkill !== "all" || modalMaxScore < 100;
+            const skillOpts = [
+              { k: "all", label: "Overall" },
+              { k: "pitch", label: "Pitch" },
+              { k: "breath", label: "Breath" },
+              { k: "tone", label: "Tone" },
+              { k: "smooth", label: "Smooth" },
+            ] as const;
             return (
               <>
                 <DialogHeader className="border-b border-border px-5 pb-3 pt-5 text-left">
@@ -483,13 +514,73 @@ function UnitDetails() {
                     {p?.best_score ? ` · Best ${p.best_score}` : ""}
                   </DialogDescription>
                 </DialogHeader>
-                <div className="max-h-[65vh] overflow-y-auto px-5 py-3">
-                  {all.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-muted-foreground">No attempts yet.</p>
+                <div className="space-y-3 border-b border-border px-5 py-3">
+                  <div>
+                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Filter by skill</p>
+                    <div className="flex gap-1.5 overflow-x-auto">
+                      {skillOpts.map((opt) => (
+                        <button
+                          key={opt.k}
+                          type="button"
+                          onClick={() => setModalSkill(opt.k)}
+                          className={`flex-shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                            modalSkill === opt.k
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground hover:bg-muted/70"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                        {modalSkill === "all" ? "Max overall score" : "Max score"}
+                      </p>
+                      <p className="font-mono text-xs font-bold tabular-nums">≤ {modalMaxScore}</p>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={modalMaxScore}
+                      onChange={(e) => setModalMaxScore(Number(e.target.value))}
+                      className="mt-1 w-full accent-primary"
+                    />
+                    <p className="mt-1 text-[10px] text-muted-foreground">Tip: lower the cap to surface weak attempts.</p>
+                  </div>
+                  {filterActive && (
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[10px] font-bold text-muted-foreground">
+                        {filtered.length} of {all.length} match
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setModalSkill("all");
+                          setModalMaxScore(100);
+                        }}
+                        className="rounded-lg bg-muted px-2 py-1 text-[10px] font-bold text-foreground hover:bg-muted/70"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="max-h-[55vh] overflow-y-auto px-5 py-3">
+                  {filtered.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-muted-foreground">
+                      {all.length === 0 ? "No attempts yet." : "No attempts match these filters."}
+                    </p>
                   ) : (
                     <ol className="space-y-2">
-                      {all.map((a, idx) => {
+                      {filtered.map((a) => {
                         const d = new Date(a.created_at);
+                        const idx = all.indexOf(a);
+                        const sv = skillVal(a);
                         return (
                           <li
                             key={a.id}
@@ -513,14 +604,15 @@ function UnitDetails() {
                             </div>
                             <div
                               className={`grid h-10 w-12 flex-shrink-0 place-items-center rounded-xl font-mono text-sm font-black tabular-nums ${
-                                a.overall_score >= 80
+                                (sv ?? 0) >= 80
                                   ? "bg-success text-success-foreground"
-                                  : a.overall_score >= 60
+                                  : (sv ?? 0) >= 60
                                     ? "bg-primary text-primary-foreground"
                                     : "bg-muted text-foreground"
                               }`}
+                              title={modalSkill === "all" ? "Overall score" : `${skillOpts.find((o) => o.k === modalSkill)?.label} score`}
                             >
-                              {a.overall_score}
+                              {sv ?? "—"}
                             </div>
                           </li>
                         );
