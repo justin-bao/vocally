@@ -179,31 +179,55 @@ function LessonPage() {
           ai_feedback: ai as any,
         });
 
-        // Upsert progress
+        // Upsert progress with per-lesson attempt count + streak tracking
+        const today = new Date().toISOString().slice(0, 10);
         const { data: existing } = await supabase
           .from("lesson_progress")
-          .select("best_score, stars")
+          .select("best_score, stars, attempts_count, current_streak, best_streak, last_attempt_date")
           .eq("user_id", user.id)
           .eq("lesson_id", lesson.id)
           .maybeSingle();
 
         if (existing) {
-          if (overall > existing.best_score) {
-            await supabase
-              .from("lesson_progress")
-              .update({ best_score: overall, stars: Math.max(existing.stars, stars), completed: true, updated_at: new Date().toISOString() })
-              .eq("user_id", user.id)
-              .eq("lesson_id", lesson.id);
+          const last = existing.last_attempt_date;
+          const y = new Date(); y.setDate(y.getDate() - 1);
+          const yStr = y.toISOString().slice(0, 10);
+          let lessonStreak = existing.current_streak ?? 0;
+          if (last === today) {
+            // already counted today, keep streak
+            if (!lessonStreak) lessonStreak = 1;
+          } else if (last === yStr) {
+            lessonStreak = lessonStreak + 1;
           } else {
-            await supabase
-              .from("lesson_progress")
-              .update({ completed: true, updated_at: new Date().toISOString() })
-              .eq("user_id", user.id)
-              .eq("lesson_id", lesson.id);
+            lessonStreak = 1;
           }
+          const bestStreak = Math.max(existing.best_streak ?? 0, lessonStreak);
+          const isBest = overall > existing.best_score;
+          await supabase
+            .from("lesson_progress")
+            .update({
+              best_score: isBest ? overall : existing.best_score,
+              stars: Math.max(existing.stars, stars),
+              completed: true,
+              attempts_count: (existing.attempts_count ?? 0) + 1,
+              current_streak: lessonStreak,
+              best_streak: bestStreak,
+              last_attempt_date: today,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", user.id)
+            .eq("lesson_id", lesson.id);
         } else {
           await supabase.from("lesson_progress").insert({
-            user_id: user.id, lesson_id: lesson.id, best_score: overall, stars, completed: true,
+            user_id: user.id,
+            lesson_id: lesson.id,
+            best_score: overall,
+            stars,
+            completed: true,
+            attempts_count: 1,
+            current_streak: 1,
+            best_streak: 1,
+            last_attempt_date: today,
           });
         }
 
