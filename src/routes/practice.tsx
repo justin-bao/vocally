@@ -8,6 +8,10 @@ import { toast } from "sonner";
 import { bumpStreak } from "@/lib/streak";
 
 export const Route = createFileRoute("/practice")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    prompt: typeof search.prompt === "string" ? search.prompt.slice(0, 800) : undefined,
+    title: typeof search.title === "string" ? search.title.slice(0, 80) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Free practice — Vocally" },
@@ -39,8 +43,9 @@ function PracticePage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
 
+  const search = Route.useSearch();
   const [phase, setPhase] = useState<Phase>("setup");
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(search.prompt ?? "");
   const [elapsed, setElapsed] = useState(0);
   const [result, setResult] = useState<FreeResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
