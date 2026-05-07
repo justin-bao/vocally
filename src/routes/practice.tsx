@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { analyzeFreePractice } from "@/server/free-practice.functions";
 import { ArrowLeft, Mic, Square, RotateCcw, Sparkles, Loader2, Star, Music } from "lucide-react";
 import { toast } from "sonner";
@@ -123,6 +124,26 @@ function PracticePage() {
         },
       });
       setResult(ai);
+      if (user) {
+        const { error: insErr } = await supabase.from("free_practice_attempts").insert({
+          user_id: user.id,
+          description: description.trim() || null,
+          duration_sec: finalDuration,
+          overall_score: ai.overall_score,
+          pitch_accuracy: ai.pitch_accuracy,
+          breath_control: ai.breath_control,
+          tone_quality: ai.tone_quality,
+          smoothness: ai.smoothness,
+          rhythm: ai.rhythm,
+          what_you_sang: ai.what_you_sang,
+          summary: ai.summary,
+          praise: ai.praise,
+          tips: ai.tips,
+          next_exercise_suggestion: ai.next_exercise_suggestion,
+        });
+        if (insErr) console.error("Failed to save practice attempt", insErr);
+        else toast.success("Saved to your history");
+      }
     } catch (e: any) {
       console.error(e);
       setAiError(e.message || "AI analysis failed");

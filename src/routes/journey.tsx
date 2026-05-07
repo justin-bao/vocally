@@ -112,6 +112,14 @@ function Journey() {
           </div>
           <ChevronRight className="h-5 w-5 opacity-80" />
         </Link>
+
+        <Link
+          to="/history"
+          className="mt-3 flex items-center justify-between rounded-2xl bg-card px-5 py-3 card-pop transition hover:scale-[1.01]"
+        >
+          <span className="font-display text-sm font-black">Practice history</span>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </Link>
       </section>
 
       {/* Units & lesson nodes */}
