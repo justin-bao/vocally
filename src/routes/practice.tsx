@@ -43,12 +43,18 @@ function PracticePage() {
   const [elapsed, setElapsed] = useState(0);
   const [result, setResult] = useState<FreeResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [recordedDuration, setRecordedDuration] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackTime, setPlaybackTime] = useState(0);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const tickRef = useRef<number | null>(null);
   const startedAtRef = useRef<number>(0);
+  const audioBlobRef = useRef<Blob | null>(null);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
