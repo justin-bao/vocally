@@ -100,6 +100,8 @@ function UnitDetails() {
   const [minBest, setMinBest] = useState(0);
   const [sortBy, setSortBy] = useState<"default" | "recent" | "best">("default");
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
+  const [modalSkill, setModalSkill] = useState<"all" | "pitch" | "breath" | "tone" | "smooth">("all");
+  const [modalMaxScore, setModalMaxScore] = useState(100);
 
   const filteredLessons = useMemo(() => {
     const q = query.trim().toLowerCase();
