@@ -211,12 +211,12 @@ function Journey() {
           const unitComplete = total > 0 && doneCount === total;
           return (
           <section key={unit.name}>
-            <Link
-              to="/unit/$unitSlug"
-              params={{ unitSlug: unit.name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") }}
-              className="mb-4 block rounded-3xl bg-card p-5 card-pop transition hover:scale-[1.005]"
-            >
-              <div className="flex items-center gap-3">
+            <div className="mb-4 rounded-3xl bg-card p-5 card-pop">
+              <Link
+                to="/unit/$unitSlug"
+                params={{ unitSlug: unit.name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") }}
+                className="-m-2 flex items-center gap-3 rounded-2xl p-2 transition hover:bg-muted/40"
+              >
                 <span className="text-2xl">{unit.icon}</span>
                 <div className="flex-1">
                   <h2 className="font-display text-xl font-black leading-tight">{unit.name}</h2>
@@ -231,7 +231,7 @@ function Journey() {
                 ) : (
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
-              </div>
+              </Link>
               <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-primary transition-all"
