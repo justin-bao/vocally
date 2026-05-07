@@ -174,7 +174,7 @@ function PracticePage() {
           next_exercise_suggestion: ai.next_exercise_suggestion,
         });
         if (insErr) console.error("Failed to save practice attempt", insErr);
-        else toast.success("Saved to your history");
+        else { toast.success("Saved to your history"); void bumpStreak(user.id); }
       }
     } catch (e: any) {
       console.error(e);
