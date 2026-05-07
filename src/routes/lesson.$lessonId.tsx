@@ -47,6 +47,31 @@ function LessonPage() {
   const [pitchScore, setPitchScore] = useState<number | null>(null);
   const [aiResult, setAiResult] = useState<AIResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [lessonStats, setLessonStats] = useState<{
+    best_score: number; stars: number; attempts_count: number;
+    current_streak: number; best_streak: number;
+  } | null>(null);
+  const [recentAttempts, setRecentAttempts] = useState<Array<{
+    id: string; overall_score: number; created_at: string;
+  }>>([]);
+
+  const loadLessonStats = async (uid: string, lid: string) => {
+    const [{ data: prog }, { data: atts }] = await Promise.all([
+      supabase.from("lesson_progress")
+        .select("best_score, stars, attempts_count, current_streak, best_streak")
+        .eq("user_id", uid).eq("lesson_id", lid).maybeSingle(),
+      supabase.from("lesson_attempts")
+        .select("id, overall_score, created_at")
+        .eq("user_id", uid).eq("lesson_id", lid)
+        .order("created_at", { ascending: false }).limit(5),
+    ]);
+    setLessonStats(prog ?? null);
+    setRecentAttempts(atts ?? []);
+  };
+
+  useEffect(() => {
+    if (user && lesson) loadLessonStats(user.id, lesson.id);
+  }, [user, lesson?.id]);
 
   const samplesRef = useRef<PitchSample[]>([]);
   const tonePlayer = useRef<TonePlayer>(new TonePlayer());
