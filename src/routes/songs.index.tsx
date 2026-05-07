@@ -24,10 +24,19 @@ interface SongRow {
   created_at: string;
 }
 
+interface AttemptRow {
+  id: string;
+  song_id: string;
+  overall_score: number;
+  mode: string;
+  created_at: string;
+}
+
 function SongsList() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
   const [songs, setSongs] = useState<SongRow[] | null>(null);
+  const [attemptsBySong, setAttemptsBySong] = useState<Record<string, AttemptRow[]>>({});
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -45,7 +54,24 @@ function SongsList() {
       .select("id, title, artist, image_url, source, created_at")
       .order("created_at", { ascending: false });
     if (error) console.error(error);
-    setSongs((data as SongRow[]) ?? []);
+    const songRows = (data as SongRow[]) ?? [];
+    setSongs(songRows);
+
+    if (songRows.length > 0) {
+      const { data: attempts } = await supabase
+        .from("song_attempts")
+        .select("id, song_id, overall_score, mode, created_at")
+        .in("song_id", songRows.map((s) => s.id))
+        .order("created_at", { ascending: false });
+      const map: Record<string, AttemptRow[]> = {};
+      (attempts ?? []).forEach((a) => {
+        const arr = map[a.song_id] ?? (map[a.song_id] = []);
+        if (arr.length < 3) arr.push(a as AttemptRow);
+      });
+      setAttemptsBySong(map);
+    } else {
+      setAttemptsBySong({});
+    }
   };
 
   const remove = async (id: string) => {
