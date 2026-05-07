@@ -161,6 +161,122 @@ export type Database = {
         }
         Relationships: []
       }
+      song_attempts: {
+        Row: {
+          breath_control: number
+          created_at: string
+          duration_sec: number
+          id: string
+          mode: string
+          overall_score: number
+          pitch_accuracy: number
+          praise: Json
+          rhythm: number
+          smoothness: number
+          song_id: string
+          summary: string | null
+          tips: Json
+          tone_quality: number
+          user_id: string
+        }
+        Insert: {
+          breath_control?: number
+          created_at?: string
+          duration_sec?: number
+          id?: string
+          mode: string
+          overall_score?: number
+          pitch_accuracy?: number
+          praise?: Json
+          rhythm?: number
+          smoothness?: number
+          song_id: string
+          summary?: string | null
+          tips?: Json
+          tone_quality?: number
+          user_id: string
+        }
+        Update: {
+          breath_control?: number
+          created_at?: string
+          duration_sec?: number
+          id?: string
+          mode?: string
+          overall_score?: number
+          pitch_accuracy?: number
+          praise?: Json
+          rhythm?: number
+          smoothness?: number
+          song_id?: string
+          summary?: string | null
+          tips?: Json
+          tone_quality?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "song_attempts_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      songs: {
+        Row: {
+          ai_plan: Json | null
+          album: string | null
+          artist: string | null
+          contour_status: string
+          created_at: string
+          duration_sec: number | null
+          id: string
+          image_url: string | null
+          pitch_contour: Json | null
+          preview_url: string | null
+          source: string
+          source_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_plan?: Json | null
+          album?: string | null
+          artist?: string | null
+          contour_status?: string
+          created_at?: string
+          duration_sec?: number | null
+          id?: string
+          image_url?: string | null
+          pitch_contour?: Json | null
+          preview_url?: string | null
+          source: string
+          source_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_plan?: Json | null
+          album?: string | null
+          artist?: string | null
+          contour_status?: string
+          created_at?: string
+          duration_sec?: number | null
+          id?: string
+          image_url?: string | null
+          pitch_contour?: Json | null
+          preview_url?: string | null
+          source?: string
+          source_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
