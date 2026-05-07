@@ -94,6 +94,37 @@ function UnitDetails() {
 
   const [progress, setProgress] = useState<Record<string, ProgressRow>>({});
   const [attemptsByLesson, setAttemptsByLesson] = useState<Record<string, AttemptRow[]>>({});
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "done" | "todo">("all");
+  const [minBest, setMinBest] = useState(0);
+  const [sortBy, setSortBy] = useState<"default" | "recent" | "best">("default");
+
+  const filteredLessons = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let list = lessons.filter((l) => {
+      const p = progress[l.id];
+      if (statusFilter === "done" && !p?.completed) return false;
+      if (statusFilter === "todo" && p?.completed) return false;
+      if (minBest > 0 && (p?.best_score ?? 0) < minBest) return false;
+      if (q) {
+        const hay = `${l.title} ${l.subtitle ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    if (sortBy === "recent") {
+      list = [...list].sort((a, b) => {
+        const ta = attemptsByLesson[a.id]?.[0]?.created_at ?? "";
+        const tb = attemptsByLesson[b.id]?.[0]?.created_at ?? "";
+        return tb.localeCompare(ta);
+      });
+    } else if (sortBy === "best") {
+      list = [...list].sort((a, b) => (progress[b.id]?.best_score ?? 0) - (progress[a.id]?.best_score ?? 0));
+    }
+    return list;
+  }, [lessons, progress, attemptsByLesson, query, statusFilter, minBest, sortBy]);
+
+  const filtersActive = query !== "" || statusFilter !== "all" || minBest > 0 || sortBy !== "default";
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
