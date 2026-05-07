@@ -56,6 +56,9 @@ function Profile() {
   const [draftMin, setDraftMin] = useState(5);
   const [draftTakes, setDraftTakes] = useState(1);
   const [savingGoal, setSavingGoal] = useState(false);
+  const [editName, setEditName] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
