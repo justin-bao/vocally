@@ -51,6 +51,11 @@ function Profile() {
   const nav = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [agg, setAgg] = useState<Aggregates | null>(null);
+  const [today, setToday] = useState<TodayProgress>({ minutes: 0, takes: 0 });
+  const [editGoal, setEditGoal] = useState(false);
+  const [draftMin, setDraftMin] = useState(5);
+  const [draftTakes, setDraftTakes] = useState(1);
+  const [savingGoal, setSavingGoal] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
