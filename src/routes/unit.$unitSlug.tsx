@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LESSONS, UNITS } from "@/lib/lessons";
-import { ArrowLeft, Check, ChevronRight, Lock, Mic, Search, Star, Trophy, Flame, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronRight, List, Lock, Mic, Search, Star, Trophy, Flame, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export const slugifyUnit = (name: string) =>
   name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -98,6 +99,7 @@ function UnitDetails() {
   const [statusFilter, setStatusFilter] = useState<"all" | "done" | "todo">("all");
   const [minBest, setMinBest] = useState(0);
   const [sortBy, setSortBy] = useState<"default" | "recent" | "best">("default");
+  const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
 
   const filteredLessons = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -154,7 +156,7 @@ function UnitDetails() {
       const amap: Record<string, AttemptRow[]> = {};
       (atts || []).forEach((a) => {
         const list = amap[a.lesson_id] || (amap[a.lesson_id] = []);
-        if (list.length < 5) list.push(a as AttemptRow);
+        list.push(a as AttemptRow);
       });
       setAttemptsByLesson(amap);
     })();
@@ -369,91 +371,168 @@ function UnitDetails() {
           const streak = p?.best_streak ?? 0;
           const recent = attemptsByLesson[lesson.id] || [];
           const isLocked = !done && lessons.findIndex((l) => l.id === lesson.id) > lessons.findIndex((l) => !progress[l.id]?.completed);
+          const recentInline = recent.slice(0, 5);
           return (
-            <Link
-              key={lesson.id}
-              to="/lesson/$lessonId"
-              params={{ lessonId: lesson.id }}
-              className="block rounded-3xl bg-card p-4 card-pop transition hover:scale-[1.005]"
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl ${
-                    done
-                      ? "bg-success text-success-foreground"
-                      : isLocked
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-primary text-primary-foreground"
-                  }`}
-                >
-                  {done ? <Check className="h-5 w-5" strokeWidth={3} /> : isLocked ? <Lock className="h-4 w-4" /> : <Mic className="h-5 w-5" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-display text-base font-black leading-tight">{lesson.title}</p>
-                      <p className="truncate text-xs text-muted-foreground">{lesson.subtitle}</p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+            <div key={lesson.id} className="rounded-3xl bg-card p-4 card-pop transition">
+              <Link
+                to="/lesson/$lessonId"
+                params={{ lessonId: lesson.id }}
+                className="block"
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl ${
+                      done
+                        ? "bg-success text-success-foreground"
+                        : isLocked
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-primary text-primary-foreground"
+                    }`}
+                  >
+                    {done ? <Check className="h-5 w-5" strokeWidth={3} /> : isLocked ? <Lock className="h-4 w-4" /> : <Mic className="h-5 w-5" />}
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3].map((n) => (
-                        <Star
-                          key={n}
-                          className={`h-3.5 w-3.5 ${n <= stars ? "fill-primary text-primary" : "text-muted-foreground/30"}`}
-                        />
-                      ))}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-display text-base font-black leading-tight">{lesson.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">{lesson.subtitle}</p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                     </div>
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Trophy className="h-3 w-3" /> Best <b className="text-foreground">{best}</b>
-                    </span>
-                    <span className="text-muted-foreground">
-                      Tries <b className="text-foreground">{tries}</b>
-                    </span>
-                    {streak > 0 && (
-                      <span className="flex items-center gap-1 text-secondary">
-                        <Flame className="h-3 w-3" /> {streak}
-                      </span>
-                    )}
-                  </div>
-                  {recent.length > 0 && (
-                    <>
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {recent.map((a) => (
-                          <span
-                            key={a.id}
-                            className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-foreground"
-                            title={new Date(a.created_at).toLocaleString()}
-                          >
-                            {new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {a.overall_score}
-                          </span>
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3].map((n) => (
+                          <Star
+                            key={n}
+                            className={`h-3.5 w-3.5 ${n <= stars ? "fill-primary text-primary" : "text-muted-foreground/30"}`}
+                          />
                         ))}
                       </div>
-                      <div className="mt-3 rounded-2xl bg-muted/40 p-3">
-                        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                          Last {recent.length} attempts
-                        </p>
-                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                          {METRICS.map((m) => {
-                            const series = [...recent].reverse().map((a) => metricValue(a, m.key));
-                            return (
-                              <div key={m.key} className="flex items-center justify-between gap-2">
-                                <span className="text-[10px] font-bold text-muted-foreground">{m.label}</span>
-                                <Sparkline values={series} color={m.color} />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </>
-                  )}
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Trophy className="h-3 w-3" /> Best <b className="text-foreground">{best}</b>
+                      </span>
+                      <span className="text-muted-foreground">
+                        Tries <b className="text-foreground">{tries}</b>
+                      </span>
+                      {streak > 0 && (
+                        <span className="flex items-center gap-1 text-secondary">
+                          <Flame className="h-3 w-3" /> {streak}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+              {recent.length > 0 && (
+                <div className="mt-3 space-y-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {recentInline.map((a) => (
+                      <span
+                        key={a.id}
+                        className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-foreground"
+                        title={new Date(a.created_at).toLocaleString()}
+                      >
+                        {new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {a.overall_score}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="rounded-2xl bg-muted/40 p-3">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                      Last {recentInline.length} attempts
+                    </p>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                      {METRICS.map((m) => {
+                        const series = [...recentInline].reverse().map((a) => metricValue(a, m.key));
+                        return (
+                          <div key={m.key} className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-bold text-muted-foreground">{m.label}</span>
+                            <Sparkline values={series} color={m.color} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedLessonId(lesson.id)}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-muted/60 px-3 py-2 text-xs font-bold text-foreground hover:bg-muted"
+                  >
+                    <List className="h-3.5 w-3.5" />
+                    View all {recent.length} attempt{recent.length === 1 ? "" : "s"}
+                  </button>
+                </div>
+              )}
+            </div>
           );
         })}
       </section>
+
+      <Dialog open={!!expandedLessonId} onOpenChange={(open) => !open && setExpandedLessonId(null)}>
+        <DialogContent className="max-h-[85vh] overflow-hidden p-0 sm:max-w-md">
+          {(() => {
+            const lesson = lessons.find((l) => l.id === expandedLessonId);
+            if (!lesson) return null;
+            const all = attemptsByLesson[lesson.id] || [];
+            const p = progress[lesson.id];
+            return (
+              <>
+                <DialogHeader className="border-b border-border px-5 pb-3 pt-5 text-left">
+                  <DialogTitle className="font-display text-lg font-black">{lesson.title}</DialogTitle>
+                  <DialogDescription className="text-xs">
+                    {all.length} attempt{all.length === 1 ? "" : "s"}
+                    {p?.best_score ? ` · Best ${p.best_score}` : ""}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="max-h-[65vh] overflow-y-auto px-5 py-3">
+                  {all.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-muted-foreground">No attempts yet.</p>
+                  ) : (
+                    <ol className="space-y-2">
+                      {all.map((a, idx) => {
+                        const d = new Date(a.created_at);
+                        return (
+                          <li
+                            key={a.id}
+                            className="flex items-center justify-between gap-3 rounded-2xl bg-muted/50 px-3 py-2.5"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="font-display text-sm font-black">
+                                #{all.length - idx}
+                                <span className="ml-2 text-xs font-bold text-muted-foreground">
+                                  {d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                                </span>
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+                                {" · "}
+                                Pitch {a.pitch_score ?? "—"}
+                                {a.ai_feedback?.breath_control != null && ` · Breath ${a.ai_feedback.breath_control}`}
+                                {a.ai_feedback?.tone_quality != null && ` · Tone ${a.ai_feedback.tone_quality}`}
+                                {a.ai_feedback?.smoothness != null && ` · Smooth ${a.ai_feedback.smoothness}`}
+                              </p>
+                            </div>
+                            <div
+                              className={`grid h-10 w-12 flex-shrink-0 place-items-center rounded-xl font-mono text-sm font-black tabular-nums ${
+                                a.overall_score >= 80
+                                  ? "bg-success text-success-foreground"
+                                  : a.overall_score >= 60
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted text-foreground"
+                              }`}
+                            >
+                              {a.overall_score}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
