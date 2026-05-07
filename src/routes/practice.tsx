@@ -406,10 +406,20 @@ function PracticePage() {
 
             <div className="flex gap-3">
               <button
-                onClick={reset}
-                className="flex flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-border bg-card px-5 py-4 font-extrabold uppercase tracking-wide text-foreground card-pop"
+                onClick={async () => {
+                  if (audioUrl) URL.revokeObjectURL(audioUrl);
+                  setAudioUrl(null);
+                  audioBlobRef.current = null;
+                  setResult(null);
+                  setAiError(null);
+                  setPlaybackTime(0);
+                  setIsPlaying(false);
+                  setRecordedDuration(0);
+                  await startRecording();
+                }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-4 font-extrabold uppercase tracking-wide text-primary-foreground btn-pop"
               >
-                <RotateCcw className="h-5 w-5" /> Sing again
+                <Mic className="h-5 w-5" /> Record again
               </button>
               <Link
                 to="/journey"
@@ -418,6 +428,12 @@ function PracticePage() {
                 Done
               </Link>
             </div>
+            <button
+              onClick={reset}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-border bg-card px-5 py-3 text-sm font-extrabold uppercase tracking-wide text-muted-foreground card-pop"
+            >
+              <RotateCcw className="h-4 w-4" /> Edit description
+            </button>
           </div>
         )}
       </div>
