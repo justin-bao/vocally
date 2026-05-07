@@ -43,8 +43,9 @@ function PracticePage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
 
+  const search = Route.useSearch();
   const [phase, setPhase] = useState<Phase>("setup");
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(search.prompt ?? "");
   const [elapsed, setElapsed] = useState(0);
   const [result, setResult] = useState<FreeResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
