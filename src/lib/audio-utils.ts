@@ -106,8 +106,8 @@ export async function extractPitchContour(source: string | Blob): Promise<Contou
   const frame = new Float32Array(window);
   for (let i = 0; i + window < channel.length; i += hop) {
     for (let j = 0; j < window; j++) frame[j] = channel[i + j];
-    const hz = detectPitch(frame, sr) ?? 0;
-    out.push({ t: i / sr, hz });
+    const det = detectPitch(frame, sr);
+    out.push({ t: i / sr, hz: det.freq ?? 0 });
   }
   return out;
 }
