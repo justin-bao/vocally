@@ -17,6 +17,15 @@ export const Route = createFileRoute("/profile")({
   component: Profile,
 });
 
+const STREAK_MILESTONES: { days: number; label: string; emoji: string }[] = [
+  { days: 3, label: "Spark", emoji: "✨" },
+  { days: 7, label: "Week", emoji: "🔥" },
+  { days: 14, label: "Fortnight", emoji: "🎯" },
+  { days: 30, label: "Monthly", emoji: "🏅" },
+  { days: 60, label: "Devoted", emoji: "💎" },
+  { days: 100, label: "Centurion", emoji: "👑" },
+];
+
 interface Profile {
   display_name: string | null;
   current_streak: number;
