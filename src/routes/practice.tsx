@@ -65,11 +65,15 @@ function PracticePage() {
       if (recorderRef.current?.state === "recording") recorderRef.current.stop();
       streamRef.current?.getTracks().forEach((t) => t.stop());
       if (tickRef.current) clearInterval(tickRef.current);
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startRecording = async () => {
     try {
+      if (audioUrl) { URL.revokeObjectURL(audioUrl); setAudioUrl(null); }
+      audioBlobRef.current = null;
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true },
       });
@@ -96,7 +100,6 @@ function PracticePage() {
 
   const stopRecording = async () => {
     if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
-    setPhase("analyzing");
 
     const rec = recorderRef.current;
     if (!rec) { setPhase("setup"); return; }
@@ -108,6 +111,26 @@ function PracticePage() {
       else resolve(new Blob(chunksRef.current, { type: rec.mimeType }));
     });
     streamRef.current?.getTracks().forEach((t) => t.stop());
+
+    audioBlobRef.current = audioBlob;
+    const url = URL.createObjectURL(audioBlob);
+    setAudioUrl(url);
+    setRecordedDuration(finalDuration);
+    setPlaybackTime(0);
+    setIsPlaying(false);
+    setPhase("review");
+  };
+
+  const togglePlayback = () => {
+    const el = audioElRef.current;
+    if (!el) return;
+    if (el.paused) el.play(); else el.pause();
+  };
+
+  const submitForAnalysis = async () => {
+    const audioBlob = audioBlobRef.current;
+    if (!audioBlob) return;
+    setPhase("analyzing");
 
     let base64 = "";
     let mimeType = "audio/wav";
@@ -126,7 +149,7 @@ function PracticePage() {
           audioBase64: base64,
           mimeType,
           description: description.trim(),
-          durationSec: finalDuration,
+          durationSec: recordedDuration,
         },
       });
       setResult(ai);
@@ -134,7 +157,7 @@ function PracticePage() {
         const { error: insErr } = await supabase.from("free_practice_attempts").insert({
           user_id: user.id,
           description: description.trim() || null,
-          duration_sec: finalDuration,
+          duration_sec: recordedDuration,
           overall_score: ai.overall_score,
           pitch_accuracy: ai.pitch_accuracy,
           breath_control: ai.breath_control,
@@ -159,10 +182,16 @@ function PracticePage() {
   };
 
   const reset = () => {
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    setAudioUrl(null);
+    audioBlobRef.current = null;
     setPhase("setup");
     setResult(null);
     setAiError(null);
     setElapsed(0);
+    setRecordedDuration(0);
+    setPlaybackTime(0);
+    setIsPlaying(false);
     chunksRef.current = [];
   };
 
