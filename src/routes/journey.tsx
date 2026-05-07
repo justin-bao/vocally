@@ -150,11 +150,50 @@ function Journey() {
 
       {/* Units & lesson nodes */}
       <div className="mx-auto max-w-2xl space-y-10 px-5 pt-10">
-        {lessonsByUnit.map((unit) => (
+        {lessonsByUnit.map((unit) => {
+          const total = unit.lessons.length;
+          const doneCount = unit.lessons.filter((l) => completedSet.has(l.id)).length;
+          const pct = total ? Math.round((doneCount / total) * 100) : 0;
+          const nextLesson = unit.lessons.find((l) => !completedSet.has(l.id));
+          const unitComplete = total > 0 && doneCount === total;
+          return (
           <section key={unit.name}>
-            <div className="mb-5 flex items-center gap-3 px-2">
-              <span className="text-2xl">{unit.icon}</span>
-              <h2 className="font-display text-xl font-black">{unit.name}</h2>
+            <div className="mb-4 rounded-3xl bg-card p-5 card-pop">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{unit.icon}</span>
+                <div className="flex-1">
+                  <h2 className="font-display text-xl font-black leading-tight">{unit.name}</h2>
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    {doneCount} / {total} lessons · {pct}%
+                  </p>
+                </div>
+                {unitComplete && (
+                  <span className="rounded-full bg-success/15 px-2.5 py-1 text-xs font-black text-success">
+                    Complete
+                  </span>
+                )}
+              </div>
+              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              {nextLesson ? (
+                <Link
+                  to="/lesson/$lessonId"
+                  params={{ lessonId: nextLesson.id }}
+                  className="mt-4 flex items-center justify-between rounded-2xl bg-primary/10 px-4 py-3 transition hover:bg-primary/15"
+                >
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-primary">Up next</p>
+                    <p className="font-display text-sm font-black">{nextLesson.title}</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-primary" />
+                </Link>
+              ) : (
+                <p className="mt-4 text-sm text-muted-foreground">🎉 You finished every lesson in this unit.</p>
+              )}
             </div>
             <div className="space-y-4">
               {unit.lessons.map((lesson, i) => {
@@ -182,7 +221,8 @@ function Journey() {
               })}
             </div>
           </section>
-        ))}
+          );
+        })}
 
         <div className="rounded-3xl bg-accent p-6 text-center card-pop">
           <p className="font-display text-lg font-bold">More units coming soon 🎤</p>
