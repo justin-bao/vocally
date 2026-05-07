@@ -53,6 +53,12 @@ interface Aggregates {
   songAttempts: number;
   lessonAttempts: number;
   recentDays: { date: string; count: number }[];
+  skills: {
+    pitch: { avg: number | null; recent: number | null; count: number };
+    breath: { avg: number | null; recent: number | null; count: number };
+    tone: { avg: number | null; recent: number | null; count: number };
+    smoothness: { avg: number | null; recent: number | null; count: number };
+  };
 }
 
 function Profile() {
