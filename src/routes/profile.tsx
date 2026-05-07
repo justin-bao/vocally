@@ -88,9 +88,9 @@ function Profile() {
   const load = async () => {
     const [profRes, freeRes, songRes, lessonRes, progressRes, songsRes] = await Promise.all([
       supabase.from("profiles").select("display_name, current_streak, last_practice_date, created_at, daily_goal_minutes, daily_goal_takes").eq("id", user!.id).maybeSingle(),
-      supabase.from("free_practice_attempts").select("overall_score, duration_sec, created_at").eq("user_id", user!.id),
-      supabase.from("song_attempts").select("overall_score, duration_sec, created_at").eq("user_id", user!.id),
-      supabase.from("lesson_attempts").select("overall_score, created_at").eq("user_id", user!.id),
+      supabase.from("free_practice_attempts").select("overall_score, duration_sec, created_at, pitch_accuracy, breath_control, tone_quality, smoothness").eq("user_id", user!.id),
+      supabase.from("song_attempts").select("overall_score, duration_sec, created_at, pitch_accuracy, breath_control, tone_quality, smoothness").eq("user_id", user!.id),
+      supabase.from("lesson_attempts").select("overall_score, created_at, pitch_score, ai_feedback").eq("user_id", user!.id),
       supabase.from("lesson_progress").select("lesson_id, stars, completed").eq("user_id", user!.id),
       supabase.from("songs").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
     ]);
