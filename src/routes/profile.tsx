@@ -432,3 +432,53 @@ function Row({ label, value }: { label: string; value: number | string }) {
     </div>
   );
 }
+
+function GoalBar({
+  label, current, goal, pct, hit, unit,
+}: { label: string; current: number; goal: number; pct: number; hit: boolean; unit?: string }) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-xs">
+        <span className="font-bold text-muted-foreground">{label}</span>
+        <span className={`font-display font-black tabular-nums ${hit ? "text-success" : ""}`}>
+          {current}{unit ? ` ${unit}` : ""} / {goal}{unit ? ` ${unit}` : ""}
+        </span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full transition-all ${hit ? "bg-success" : "bg-primary"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function GoalEditor({
+  label, value, onChange, min, max, unit,
+}: { label: string; value: number; onChange: (v: number) => void; min: number; max: number; unit?: string }) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
+        <span className="font-display text-lg font-black tabular-nums">
+          {value}{unit ? ` ${unit}` : ""}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={1}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value, 10))}
+        className="w-full accent-primary"
+      />
+      <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+        <span>{min}</span>
+        <span>{max}</span>
+      </div>
+    </div>
+  );
+}
+
