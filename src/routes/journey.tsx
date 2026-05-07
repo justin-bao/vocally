@@ -29,6 +29,7 @@ function Journey() {
   const nav = useNavigate();
   const [progress, setProgress] = useState<Record<string, ProgressRow>>({});
   const [profile, setProfile] = useState<{ display_name: string | null; current_streak: number } | null>(null);
+  const [attempts, setAttempts] = useState<AttemptScores[]>([]);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -37,16 +38,29 @@ function Journey() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: prog }, { data: prof }] = await Promise.all([
+      const [{ data: prog }, { data: prof }, { data: atts }] = await Promise.all([
         supabase.from("lesson_progress").select("lesson_id, best_score, completed, stars").eq("user_id", user.id),
         supabase.from("profiles").select("display_name, current_streak").eq("id", user.id).maybeSingle(),
+        supabase.from("lesson_attempts")
+          .select("lesson_id, pitch_score, overall_score, ai_feedback, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(20),
       ]);
       const map: Record<string, ProgressRow> = {};
       (prog || []).forEach((p) => (map[p.lesson_id] = p as ProgressRow));
       setProgress(map);
       setProfile(prof || { display_name: null, current_streak: 0 });
+      setAttempts((atts || []) as unknown as AttemptScores[]);
     })();
   }, [user]);
+
+  const recommendation = useMemo(() => {
+    const progressList = Object.values(progress).map((p) => ({
+      lesson_id: p.lesson_id, completed: p.completed, best_score: p.best_score,
+    }));
+    return recommendLesson(attempts, progressList);
+  }, [attempts, progress]);
 
   if (loading || !user) {
     return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
