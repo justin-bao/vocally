@@ -56,6 +56,9 @@ function Profile() {
   const [draftMin, setDraftMin] = useState(5);
   const [draftTakes, setDraftTakes] = useState(1);
   const [savingGoal, setSavingGoal] = useState(false);
+  const [editName, setEditName] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -81,6 +84,7 @@ function Profile() {
     if (profRes.data) {
       setDraftMin((profRes.data as Profile).daily_goal_minutes ?? 5);
       setDraftTakes((profRes.data as Profile).daily_goal_takes ?? 1);
+      setDraftName((profRes.data as Profile).display_name ?? "");
     }
 
     const free = freeRes.data ?? [];
@@ -164,6 +168,28 @@ function Profile() {
     setEditGoal(false);
     toast.success("Goal updated");
   };
+
+  const saveName = async () => {
+    if (!user) return;
+    const name = draftName.trim().slice(0, 60);
+    if (!name) {
+      toast.error("Name can't be empty");
+      return;
+    }
+    setSavingName(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: name })
+      .eq("id", user.id);
+    setSavingName(false);
+    if (error) {
+      toast.error("Couldn't save name");
+      return;
+    }
+    setProfile((p) => (p ? { ...p, display_name: name } : p));
+    setEditName(false);
+    toast.success("Name updated");
+  };
   if (loading || !user) {
     return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
   }
@@ -200,15 +226,63 @@ function Profile() {
         {/* Identity */}
         <div className="flex items-center gap-4 rounded-3xl bg-card p-5 card-pop">
           <img src={mascot} alt="" width={72} height={72} className="h-[72px] w-[72px] flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="font-display text-2xl font-black truncate">
-              {profile?.display_name || user.email?.split("@")[0] || "Singer"}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            {profile?.created_at && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Singing since {new Date(profile.created_at).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
-              </p>
+          <div className="min-w-0 flex-1">
+            {!editName ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <p className="font-display text-2xl font-black truncate">
+                    {profile?.display_name || user.email?.split("@")[0] || "Singer"}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setDraftName(profile?.display_name ?? "");
+                      setEditName(true);
+                    }}
+                    className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label="Edit display name"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                {profile?.created_at && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Singing since {new Date(profile.created_at).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Display name</label>
+                <input
+                  type="text"
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  maxLength={60}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void saveName();
+                    if (e.key === "Escape") setEditName(false);
+                  }}
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 font-display text-lg font-bold focus:border-primary focus:outline-none"
+                  placeholder="Your name"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => void saveName()}
+                    disabled={savingName}
+                    className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
+                  >
+                    <Check className="h-4 w-4" /> Save
+                  </button>
+                  <button
+                    onClick={() => setEditName(false)}
+                    className="inline-flex items-center gap-1 rounded-lg bg-muted px-3 py-1.5 text-sm font-bold text-foreground"
+                  >
+                    <X className="h-4 w-4" /> Cancel
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
