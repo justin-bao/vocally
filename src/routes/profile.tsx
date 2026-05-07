@@ -226,15 +226,63 @@ function Profile() {
         {/* Identity */}
         <div className="flex items-center gap-4 rounded-3xl bg-card p-5 card-pop">
           <img src={mascot} alt="" width={72} height={72} className="h-[72px] w-[72px] flex-shrink-0" />
-          <div className="min-w-0">
-            <p className="font-display text-2xl font-black truncate">
-              {profile?.display_name || user.email?.split("@")[0] || "Singer"}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            {profile?.created_at && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Singing since {new Date(profile.created_at).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
-              </p>
+          <div className="min-w-0 flex-1">
+            {!editName ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <p className="font-display text-2xl font-black truncate">
+                    {profile?.display_name || user.email?.split("@")[0] || "Singer"}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setDraftName(profile?.display_name ?? "");
+                      setEditName(true);
+                    }}
+                    className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label="Edit display name"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                {profile?.created_at && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Singing since {new Date(profile.created_at).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Display name</label>
+                <input
+                  type="text"
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  maxLength={60}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void saveName();
+                    if (e.key === "Escape") setEditName(false);
+                  }}
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 font-display text-lg font-bold focus:border-primary focus:outline-none"
+                  placeholder="Your name"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => void saveName()}
+                    disabled={savingName}
+                    className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
+                  >
+                    <Check className="h-4 w-4" /> Save
+                  </button>
+                  <button
+                    onClick={() => setEditName(false)}
+                    className="inline-flex items-center gap-1 rounded-lg bg-muted px-3 py-1.5 text-sm font-bold text-foreground"
+                  >
+                    <X className="h-4 w-4" /> Cancel
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
