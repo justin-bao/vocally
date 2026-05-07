@@ -126,6 +126,44 @@ function Journey() {
           </div>
         </div>
 
+        {recommendation && (
+          <Link
+            to="/lesson/$lessonId"
+            params={{ lessonId: recommendation.lesson.id }}
+            className="mt-4 block rounded-3xl bg-primary p-5 text-primary-foreground btn-pop transition hover:scale-[1.01]"
+          >
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wide opacity-90">
+              <Sparkles className="h-3.5 w-3.5" />
+              Coach pick for you
+            </div>
+            <p className="mt-1 font-display text-lg font-black leading-tight">
+              {recommendation.lesson.title}
+            </p>
+            <p className="mt-1 text-xs opacity-95">{recommendation.reason}</p>
+            {recommendation.sampleSize > 0 && (
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {(["pitch", "breath", "tone", "smoothness"] as const).map((s) => {
+                  const isWeak = s === recommendation.weakestSkill;
+                  return (
+                    <div
+                      key={s}
+                      className={`rounded-xl px-2 py-1.5 text-center ${
+                        isWeak ? "bg-primary-foreground/25 ring-1 ring-primary-foreground/50" : "bg-primary-foreground/10"
+                      }`}
+                    >
+                      <p className="text-[9px] font-bold uppercase tracking-wide opacity-80">{s}</p>
+                      <p className="font-display text-sm font-black">{recommendation.averages[s]}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="mt-3 flex items-center justify-end gap-1 text-xs font-black">
+              Start lesson <ChevronRight className="h-4 w-4" />
+            </div>
+          </Link>
+        )}
+
         <Link
           to="/practice"
           className="mt-4 flex items-center gap-4 rounded-3xl bg-secondary p-5 text-secondary-foreground btn-pop-secondary transition hover:scale-[1.01]"
