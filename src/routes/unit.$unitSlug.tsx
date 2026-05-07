@@ -99,6 +99,7 @@ function UnitDetails() {
   const [statusFilter, setStatusFilter] = useState<"all" | "done" | "todo">("all");
   const [minBest, setMinBest] = useState(0);
   const [sortBy, setSortBy] = useState<"default" | "recent" | "best">("default");
+  const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
 
   const filteredLessons = useMemo(() => {
     const q = query.trim().toLowerCase();
