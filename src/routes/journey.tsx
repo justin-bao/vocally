@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LESSONS, UNITS } from "@/lib/lessons";
-import { Mic, LogOut, Star, Lock, Check, Flame, Music, ChevronRight } from "lucide-react";
+import { Mic, LogOut, Star, Lock, Check, Flame, Music, ChevronRight, UserRound } from "lucide-react";
 import mascot from "@/assets/mascot.png";
 
 export const Route = createFileRoute("/journey")({
@@ -70,10 +70,22 @@ function Journey() {
             </div>
             <span className="font-display text-xl font-black">Vocally</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 rounded-full bg-secondary/15 px-3 py-1 text-sm font-bold text-secondary">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/profile"
+              className="flex items-center gap-1 rounded-full bg-secondary/15 px-3 py-1 text-sm font-bold text-secondary transition hover:bg-secondary/25"
+              title="View profile"
+            >
               <Flame className="h-4 w-4" /> {profile?.current_streak ?? 0}
-            </div>
+            </Link>
+            <Link
+              to="/profile"
+              className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:bg-muted"
+              title="My profile"
+              aria-label="My profile"
+            >
+              <UserRound className="h-4 w-4" />
+            </Link>
             <button
               onClick={() => { signOut(); nav({ to: "/" }); }}
               className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:bg-muted"

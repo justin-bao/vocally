@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { analyzeFreePractice } from "@/server/free-practice.functions";
 import { ArrowLeft, Mic, Square, RotateCcw, Sparkles, Loader2, Star, Music, Play, Pause, Send } from "lucide-react";
 import { toast } from "sonner";
+import { bumpStreak } from "@/lib/streak";
 
 export const Route = createFileRoute("/practice")({
   head: () => ({
@@ -174,7 +175,7 @@ function PracticePage() {
           next_exercise_suggestion: ai.next_exercise_suggestion,
         });
         if (insErr) console.error("Failed to save practice attempt", insErr);
-        else toast.success("Saved to your history");
+        else { toast.success("Saved to your history"); void bumpStreak(user.id); }
       }
     } catch (e: any) {
       console.error(e);
