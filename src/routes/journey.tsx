@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LESSONS, UNITS } from "@/lib/lessons";
-import { Mic, LogOut, Star, Lock, Check, Flame, Music, ChevronRight, UserRound } from "lucide-react";
+import { recommendLesson, type AttemptScores } from "@/lib/recommend";
+import { Mic, LogOut, Star, Lock, Check, Flame, Music, ChevronRight, UserRound, Sparkles } from "lucide-react";
 import mascot from "@/assets/mascot.png";
 
 export const Route = createFileRoute("/journey")({
