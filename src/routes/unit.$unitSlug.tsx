@@ -371,88 +371,98 @@ function UnitDetails() {
           const streak = p?.best_streak ?? 0;
           const recent = attemptsByLesson[lesson.id] || [];
           const isLocked = !done && lessons.findIndex((l) => l.id === lesson.id) > lessons.findIndex((l) => !progress[l.id]?.completed);
+          const recentInline = recent.slice(0, 5);
           return (
-            <Link
-              key={lesson.id}
-              to="/lesson/$lessonId"
-              params={{ lessonId: lesson.id }}
-              className="block rounded-3xl bg-card p-4 card-pop transition hover:scale-[1.005]"
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl ${
-                    done
-                      ? "bg-success text-success-foreground"
-                      : isLocked
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-primary text-primary-foreground"
-                  }`}
-                >
-                  {done ? <Check className="h-5 w-5" strokeWidth={3} /> : isLocked ? <Lock className="h-4 w-4" /> : <Mic className="h-5 w-5" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-display text-base font-black leading-tight">{lesson.title}</p>
-                      <p className="truncate text-xs text-muted-foreground">{lesson.subtitle}</p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+            <div key={lesson.id} className="rounded-3xl bg-card p-4 card-pop transition">
+              <Link
+                to="/lesson/$lessonId"
+                params={{ lessonId: lesson.id }}
+                className="block"
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl ${
+                      done
+                        ? "bg-success text-success-foreground"
+                        : isLocked
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-primary text-primary-foreground"
+                    }`}
+                  >
+                    {done ? <Check className="h-5 w-5" strokeWidth={3} /> : isLocked ? <Lock className="h-4 w-4" /> : <Mic className="h-5 w-5" />}
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3].map((n) => (
-                        <Star
-                          key={n}
-                          className={`h-3.5 w-3.5 ${n <= stars ? "fill-primary text-primary" : "text-muted-foreground/30"}`}
-                        />
-                      ))}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-display text-base font-black leading-tight">{lesson.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">{lesson.subtitle}</p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                     </div>
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Trophy className="h-3 w-3" /> Best <b className="text-foreground">{best}</b>
-                    </span>
-                    <span className="text-muted-foreground">
-                      Tries <b className="text-foreground">{tries}</b>
-                    </span>
-                    {streak > 0 && (
-                      <span className="flex items-center gap-1 text-secondary">
-                        <Flame className="h-3 w-3" /> {streak}
-                      </span>
-                    )}
-                  </div>
-                  {recent.length > 0 && (
-                    <>
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {recent.map((a) => (
-                          <span
-                            key={a.id}
-                            className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-foreground"
-                            title={new Date(a.created_at).toLocaleString()}
-                          >
-                            {new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {a.overall_score}
-                          </span>
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3].map((n) => (
+                          <Star
+                            key={n}
+                            className={`h-3.5 w-3.5 ${n <= stars ? "fill-primary text-primary" : "text-muted-foreground/30"}`}
+                          />
                         ))}
                       </div>
-                      <div className="mt-3 rounded-2xl bg-muted/40 p-3">
-                        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                          Last {recent.length} attempts
-                        </p>
-                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                          {METRICS.map((m) => {
-                            const series = [...recent].reverse().map((a) => metricValue(a, m.key));
-                            return (
-                              <div key={m.key} className="flex items-center justify-between gap-2">
-                                <span className="text-[10px] font-bold text-muted-foreground">{m.label}</span>
-                                <Sparkline values={series} color={m.color} />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </>
-                  )}
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Trophy className="h-3 w-3" /> Best <b className="text-foreground">{best}</b>
+                      </span>
+                      <span className="text-muted-foreground">
+                        Tries <b className="text-foreground">{tries}</b>
+                      </span>
+                      {streak > 0 && (
+                        <span className="flex items-center gap-1 text-secondary">
+                          <Flame className="h-3 w-3" /> {streak}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+              {recent.length > 0 && (
+                <div className="mt-3 space-y-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {recentInline.map((a) => (
+                      <span
+                        key={a.id}
+                        className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-foreground"
+                        title={new Date(a.created_at).toLocaleString()}
+                      >
+                        {new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · {a.overall_score}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="rounded-2xl bg-muted/40 p-3">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                      Last {recentInline.length} attempts
+                    </p>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                      {METRICS.map((m) => {
+                        const series = [...recentInline].reverse().map((a) => metricValue(a, m.key));
+                        return (
+                          <div key={m.key} className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-bold text-muted-foreground">{m.label}</span>
+                            <Sparkline values={series} color={m.color} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedLessonId(lesson.id)}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-muted/60 px-3 py-2 text-xs font-bold text-foreground hover:bg-muted"
+                  >
+                    <List className="h-3.5 w-3.5" />
+                    View all {recent.length} attempt{recent.length === 1 ? "" : "s"}
+                  </button>
+                </div>
+              )}
+            </div>
           );
         })}
       </section>
