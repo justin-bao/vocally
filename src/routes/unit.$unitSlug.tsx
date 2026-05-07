@@ -35,7 +35,54 @@ interface AttemptRow {
   id: string;
   lesson_id: string;
   overall_score: number;
+  pitch_score: number | null;
+  ai_feedback: { breath_control?: number; tone_quality?: number; smoothness?: number } | null;
   created_at: string;
+}
+
+type MetricKey = "pitch" | "breath" | "tone" | "smooth";
+const METRICS: { key: MetricKey; label: string; color: string }[] = [
+  { key: "pitch", label: "Pitch", color: "hsl(var(--primary))" },
+  { key: "breath", label: "Breath", color: "hsl(var(--secondary))" },
+  { key: "tone", label: "Tone", color: "hsl(var(--success))" },
+  { key: "smooth", label: "Smooth", color: "hsl(var(--accent))" },
+];
+
+function metricValue(a: AttemptRow, key: MetricKey): number | null {
+  if (key === "pitch") return a.pitch_score ?? null;
+  if (key === "breath") return a.ai_feedback?.breath_control ?? null;
+  if (key === "tone") return a.ai_feedback?.tone_quality ?? null;
+  return a.ai_feedback?.smoothness ?? null;
+}
+
+function Sparkline({ values, color }: { values: (number | null)[]; color: string }) {
+  const w = 80;
+  const h = 24;
+  const valid = values.map((v, i) => ({ v, i })).filter((p) => p.v != null) as { v: number; i: number }[];
+  if (valid.length === 0) {
+    return <div className="h-6 w-20 rounded bg-muted/50" />;
+  }
+  const stepX = values.length > 1 ? w / (values.length - 1) : 0;
+  const points = valid.map((p) => `${(p.i * stepX).toFixed(1)},${(h - (p.v / 100) * h).toFixed(1)}`).join(" ");
+  const last = valid[valid.length - 1];
+  const lastX = last.i * stepX;
+  const lastY = h - (last.v / 100) * h;
+  const first = valid[0].v;
+  const delta = last.v - first;
+  return (
+    <div className="flex items-center gap-1.5">
+      <svg width={w} height={h} className="overflow-visible">
+        {valid.length > 1 && <polyline fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" points={points} />}
+        <circle cx={lastX} cy={lastY} r={2} fill={color} />
+      </svg>
+      <span className="font-mono text-[10px] font-bold tabular-nums" style={{ color }}>{last.v}</span>
+      {valid.length > 1 && (
+        <span className={`text-[9px] font-bold ${delta > 0 ? "text-success" : delta < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+          {delta > 0 ? "▲" : delta < 0 ? "▼" : "•"}{Math.abs(delta)}
+        </span>
+      )}
+    </div>
+  );
 }
 
 function UnitDetails() {
