@@ -22,6 +22,13 @@ interface Profile {
   current_streak: number;
   last_practice_date: string | null;
   created_at: string;
+  daily_goal_minutes: number;
+  daily_goal_takes: number;
+}
+
+interface TodayProgress {
+  minutes: number;
+  takes: number;
 }
 
 interface Aggregates {
