@@ -305,12 +305,14 @@ function PracticePage() {
                   {isPlaying ? <Pause className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 fill-current translate-x-0.5" />}
                 </button>
                 <div className="flex-1">
-                  <div className="h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full bg-primary transition-all"
-                      style={{ width: `${recordedDuration ? Math.min(100, (playbackTime / recordedDuration) * 100) : 0}%` }}
-                    />
-                  </div>
+                  <Waveform
+                    peaks={peaks}
+                    progress={recordedDuration ? Math.min(1, playbackTime / recordedDuration) : 0}
+                    onSeek={(p) => {
+                      const el = audioElRef.current;
+                      if (el && recordedDuration) el.currentTime = p * recordedDuration;
+                    }}
+                  />
                   <div className="mt-1 flex justify-between text-xs font-bold tabular-nums text-muted-foreground">
                     <span>{playbackTime.toFixed(1)}s</span>
                     <span>{recordedDuration.toFixed(1)}s</span>
