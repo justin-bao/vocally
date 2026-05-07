@@ -459,6 +459,63 @@ function Profile() {
           </div>
         )}
 
+        {/* Achievements */}
+        <div className="rounded-3xl bg-card p-5 card-pop">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <Award className="h-3.5 w-3.5" /> Achievements
+            </div>
+            <p className="text-xs font-bold text-muted-foreground tabular-nums">
+              {STREAK_MILESTONES.filter((m) => streak >= m.days).length} / {STREAK_MILESTONES.length}
+            </p>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Streak milestones unlocked by consistent daily practice.</p>
+          <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-6">
+            {STREAK_MILESTONES.map((m) => {
+              const unlocked = streak >= m.days;
+              return (
+                <div
+                  key={m.days}
+                  className={`flex flex-col items-center gap-1.5 rounded-2xl p-3 text-center transition ${
+                    unlocked ? "bg-secondary/15 ring-1 ring-secondary/40" : "bg-muted/40"
+                  }`}
+                  title={unlocked ? `${m.label} — unlocked` : `Reach a ${m.days}-day streak`}
+                >
+                  <div
+                    className={`grid h-12 w-12 place-items-center rounded-2xl text-xl ${
+                      unlocked ? "bg-gradient-to-br from-secondary to-primary text-secondary-foreground shadow-md" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {unlocked ? m.emoji : <Lock className="h-4 w-4" />}
+                  </div>
+                  <p className={`font-display text-sm font-black leading-none ${unlocked ? "" : "text-muted-foreground"}`}>
+                    {m.days}d
+                  </p>
+                  <p className={`text-[10px] font-bold uppercase tracking-wide leading-tight ${unlocked ? "text-foreground" : "text-muted-foreground"}`}>
+                    {m.label}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+          {(() => {
+            const next = STREAK_MILESTONES.find((m) => streak < m.days);
+            if (!next) {
+              return (
+                <p className="mt-4 rounded-2xl bg-success/15 p-3 text-sm font-bold text-success">
+                  🏆 All streak badges earned — you're a legend.
+                </p>
+              );
+            }
+            const remaining = next.days - streak;
+            return (
+              <p className="mt-4 text-xs font-bold text-muted-foreground">
+                {remaining} more {remaining === 1 ? "day" : "days"} to unlock <span className="text-foreground">{next.label}</span>.
+              </p>
+            );
+          })()}
+        </div>
+
         {/* Quick links */}
         <div className="grid grid-cols-2 gap-3">
           <Link
