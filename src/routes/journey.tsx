@@ -165,6 +165,21 @@ function Journey() {
         )}
 
         <Link
+          to="/daily"
+          className="mt-4 flex items-center gap-4 rounded-3xl bg-gradient-to-br from-primary to-secondary p-5 text-primary-foreground btn-pop transition hover:scale-[1.01]"
+        >
+          <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl bg-white/20">
+            <Sparkles className="h-6 w-6" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-wide opacity-90">Today</p>
+            <p className="font-display text-lg font-black leading-tight">Daily Practice</p>
+            <p className="text-xs opacity-90">A fresh 60-second prompt tailored to your progress</p>
+          </div>
+          <ChevronRight className="h-5 w-5 opacity-80" />
+        </Link>
+
+        <Link
           to="/practice"
           className="mt-4 flex items-center gap-4 rounded-3xl bg-secondary p-5 text-secondary-foreground btn-pop-secondary transition hover:scale-[1.01]"
         >
