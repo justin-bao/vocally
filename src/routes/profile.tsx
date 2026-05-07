@@ -118,6 +118,18 @@ function Profile() {
     }
     const daysActive = Array.from(counts.values()).filter((n) => n > 0).length;
 
+    // Today progress
+    const todayKey = dayKey(new Date());
+    let todayMinutes = 0;
+    let todayTakes = 0;
+    allWithScore.forEach((a) => {
+      if (dayKey(new Date(a.at)) === todayKey) {
+        todayTakes += 1;
+        todayMinutes += (a.dur || 0) / 60;
+      }
+    });
+    setToday({ minutes: Math.round(todayMinutes * 10) / 10, takes: todayTakes });
+
     setAgg({
       totalAttempts,
       totalMinutes: Math.round(totalSeconds / 60),
