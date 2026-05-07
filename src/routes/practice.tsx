@@ -47,6 +47,7 @@ function PracticePage() {
   const [recordedDuration, setRecordedDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackTime, setPlaybackTime] = useState(0);
+  const [peaks, setPeaks] = useState<number[] | null>(null);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
