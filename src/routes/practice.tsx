@@ -8,6 +8,10 @@ import { toast } from "sonner";
 import { bumpStreak } from "@/lib/streak";
 
 export const Route = createFileRoute("/practice")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    prompt: typeof search.prompt === "string" ? search.prompt.slice(0, 800) : undefined,
+    title: typeof search.title === "string" ? search.title.slice(0, 80) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Free practice — Vocally" },
