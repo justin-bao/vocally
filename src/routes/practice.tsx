@@ -272,8 +272,64 @@ function PracticePage() {
               onClick={stopRecording}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary px-6 py-5 text-lg font-extrabold uppercase tracking-wide text-secondary-foreground btn-pop-secondary"
             >
-              <Square className="h-5 w-5 fill-current" /> Stop & analyze
+              <Square className="h-5 w-5 fill-current" /> Stop recording
             </button>
+          </div>
+        )}
+
+        {phase === "review" && audioUrl && (
+          <div className="space-y-4">
+            <div className="rounded-3xl bg-card p-6 card-pop">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Listen back</p>
+              <p className="mt-1 font-display text-lg font-black">Review your take</p>
+
+              <audio
+                ref={audioElRef}
+                src={audioUrl}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onEnded={() => { setIsPlaying(false); setPlaybackTime(recordedDuration); }}
+                onTimeUpdate={(e) => setPlaybackTime((e.target as HTMLAudioElement).currentTime)}
+                className="hidden"
+              />
+
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  onClick={togglePlayback}
+                  className="grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-primary text-primary-foreground btn-pop"
+                  aria-label={isPlaying ? "Pause" : "Play"}
+                >
+                  {isPlaying ? <Pause className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 fill-current translate-x-0.5" />}
+                </button>
+                <div className="flex-1">
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full bg-primary transition-all"
+                      style={{ width: `${recordedDuration ? Math.min(100, (playbackTime / recordedDuration) * 100) : 0}%` }}
+                    />
+                  </div>
+                  <div className="mt-1 flex justify-between text-xs font-bold tabular-nums text-muted-foreground">
+                    <span>{playbackTime.toFixed(1)}s</span>
+                    <span>{recordedDuration.toFixed(1)}s</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={startRecording}
+                className="flex flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-border bg-card px-5 py-4 font-extrabold uppercase tracking-wide text-foreground card-pop"
+              >
+                <RotateCcw className="h-5 w-5" /> Re-record
+              </button>
+              <button
+                onClick={submitForAnalysis}
+                className="flex flex-[1.4] items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-4 font-extrabold uppercase tracking-wide text-primary-foreground btn-pop"
+              >
+                <Send className="h-5 w-5" /> Get feedback
+              </button>
+            </div>
           </div>
         )}
 
