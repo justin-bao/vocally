@@ -180,17 +180,20 @@ function Journey() {
                 />
               </div>
               {nextLesson ? (
-                <Link
-                  to="/lesson/$lessonId"
-                  params={{ lessonId: nextLesson.id }}
-                  className="mt-4 flex items-center justify-between rounded-2xl bg-primary/10 px-4 py-3 transition hover:bg-primary/15"
-                >
-                  <div>
+                <div className="mt-4 flex items-center gap-3 rounded-2xl bg-primary/10 p-3">
+                  <div className="flex-1 min-w-0 pl-1">
                     <p className="text-[10px] font-bold uppercase tracking-wide text-primary">Up next</p>
-                    <p className="font-display text-sm font-black">{nextLesson.title}</p>
+                    <p className="truncate font-display text-sm font-black">{nextLesson.title}</p>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-primary" />
-                </Link>
+                  <Link
+                    to="/lesson/$lessonId"
+                    params={{ lessonId: nextLesson.id }}
+                    className="flex flex-shrink-0 items-center gap-1 rounded-xl bg-primary px-4 py-2 text-sm font-black text-primary-foreground btn-pop transition hover:scale-[1.02]"
+                  >
+                    {doneCount > 0 ? "Resume" : "Start"}
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
               ) : (
                 <p className="mt-4 text-sm text-muted-foreground">🎉 You finished every lesson in this unit.</p>
               )}
