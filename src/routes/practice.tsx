@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { analyzeFreePractice } from "@/server/free-practice.functions";
-import { ArrowLeft, Mic, Square, RotateCcw, Sparkles, Loader2, Star, Music } from "lucide-react";
+import { ArrowLeft, Mic, Square, RotateCcw, Sparkles, Loader2, Star, Music, Play, Pause, Send } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/practice")({
