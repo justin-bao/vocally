@@ -232,7 +232,6 @@ function LessonPage() {
         }
 
         // Update streak
-        const today = new Date().toISOString().slice(0, 10);
         const { data: prof } = await supabase
           .from("profiles")
           .select("last_practice_date, current_streak")
