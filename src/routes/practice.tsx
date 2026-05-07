@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { analyzeFreePractice } from "@/server/free-practice.functions";
 import { ArrowLeft, Mic, Square, RotateCcw, Sparkles, Loader2, Star, Music } from "lucide-react";
 import { toast } from "sonner";
