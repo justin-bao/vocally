@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LESSONS, UNITS } from "@/lib/lessons";
-import { Mic, LogOut, Star, Lock, Check, Flame, Music, ChevronRight } from "lucide-react";
+import { Mic, LogOut, Star, Lock, Check, Flame, Music, ChevronRight, UserRound } from "lucide-react";
 import mascot from "@/assets/mascot.png";
 
 export const Route = createFileRoute("/journey")({
