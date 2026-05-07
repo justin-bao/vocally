@@ -16,7 +16,7 @@ export const Route = createFileRoute("/practice")({
   component: PracticePage,
 });
 
-type Phase = "setup" | "recording" | "analyzing" | "done";
+type Phase = "setup" | "recording" | "review" | "analyzing" | "done";
 
 interface FreeResult {
   overall_score: number;
