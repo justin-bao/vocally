@@ -14,6 +14,8 @@ import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SongsIndexRouteImport } from './routes/songs.index'
+import { Route as SongsImportRouteImport } from './routes/songs.import'
 import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
 
 const PracticeRoute = PracticeRouteImport.update({
@@ -41,6 +43,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SongsIndexRoute = SongsIndexRouteImport.update({
+  id: '/songs/',
+  path: '/songs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SongsImportRoute = SongsImportRouteImport.update({
+  id: '/songs/import',
+  path: '/songs/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LessonLessonIdRoute = LessonLessonIdRouteImport.update({
   id: '/lesson/$lessonId',
   path: '/lesson/$lessonId',
@@ -54,6 +66,8 @@ export interface FileRoutesByFullPath {
   '/journey': typeof JourneyRoute
   '/practice': typeof PracticeRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
+  '/songs/import': typeof SongsImportRoute
+  '/songs/': typeof SongsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +76,8 @@ export interface FileRoutesByTo {
   '/journey': typeof JourneyRoute
   '/practice': typeof PracticeRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
+  '/songs/import': typeof SongsImportRoute
+  '/songs': typeof SongsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +87,8 @@ export interface FileRoutesById {
   '/journey': typeof JourneyRoute
   '/practice': typeof PracticeRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
+  '/songs/import': typeof SongsImportRoute
+  '/songs/': typeof SongsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +99,8 @@ export interface FileRouteTypes {
     | '/journey'
     | '/practice'
     | '/lesson/$lessonId'
+    | '/songs/import'
+    | '/songs/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +109,8 @@ export interface FileRouteTypes {
     | '/journey'
     | '/practice'
     | '/lesson/$lessonId'
+    | '/songs/import'
+    | '/songs'
   id:
     | '__root__'
     | '/'
@@ -97,6 +119,8 @@ export interface FileRouteTypes {
     | '/journey'
     | '/practice'
     | '/lesson/$lessonId'
+    | '/songs/import'
+    | '/songs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +130,8 @@ export interface RootRouteChildren {
   JourneyRoute: typeof JourneyRoute
   PracticeRoute: typeof PracticeRoute
   LessonLessonIdRoute: typeof LessonLessonIdRoute
+  SongsImportRoute: typeof SongsImportRoute
+  SongsIndexRoute: typeof SongsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -145,6 +171,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/songs/': {
+      id: '/songs/'
+      path: '/songs'
+      fullPath: '/songs/'
+      preLoaderRoute: typeof SongsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/songs/import': {
+      id: '/songs/import'
+      path: '/songs/import'
+      fullPath: '/songs/import'
+      preLoaderRoute: typeof SongsImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lesson/$lessonId': {
       id: '/lesson/$lessonId'
       path: '/lesson/$lessonId'
@@ -162,7 +202,18 @@ const rootRouteChildren: RootRouteChildren = {
   JourneyRoute: JourneyRoute,
   PracticeRoute: PracticeRoute,
   LessonLessonIdRoute: LessonLessonIdRoute,
+  SongsImportRoute: SongsImportRoute,
+  SongsIndexRoute: SongsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
