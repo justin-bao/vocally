@@ -711,3 +711,59 @@ function GoalEditor({
   );
 }
 
+function SkillRow({
+  label,
+  stat,
+  barClass,
+}: {
+  label: string;
+  stat: { avg: number | null; recent: number | null; count: number };
+  barClass: string;
+}) {
+  const avg = stat.avg ?? 0;
+  const recent = stat.recent ?? avg;
+  const delta = stat.avg != null && stat.recent != null ? stat.recent - stat.avg : 0;
+  const noData = stat.avg == null;
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-xs">
+        <span className="font-bold text-foreground">{label}</span>
+        {noData ? (
+          <span className="text-muted-foreground">No data</span>
+        ) : (
+          <span className="flex items-center gap-2">
+            <span className="font-display font-black tabular-nums">{avg}</span>
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
+                delta > 0
+                  ? "bg-success/20 text-success"
+                  : delta < 0
+                    ? "bg-destructive/15 text-destructive"
+                    : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {delta > 0 ? "▲" : delta < 0 ? "▼" : "•"} {Math.abs(delta)}
+            </span>
+          </span>
+        )}
+      </div>
+      <div className="relative h-2 overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full ${barClass} ${noData ? "opacity-30" : ""} transition-all`}
+          style={{ width: `${avg}%` }}
+        />
+        {!noData && stat.recent != null && (
+          <div
+            className="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 rounded bg-foreground"
+            style={{ left: `calc(${recent}% - 1px)` }}
+            title={`Recent avg: ${recent}`}
+          />
+        )}
+      </div>
+      <p className="mt-0.5 text-[10px] text-muted-foreground">
+        {noData ? "No takes scored this skill yet" : `${stat.count} ${stat.count === 1 ? "take" : "takes"} scored`}
+      </p>
+    </div>
+  );
+}
+
