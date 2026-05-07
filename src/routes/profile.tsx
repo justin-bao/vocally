@@ -503,6 +503,47 @@ function Profile() {
           </div>
         )}
 
+        {/* Skill breakdown */}
+        {agg && (
+          <div className="rounded-3xl bg-card p-5 card-pop">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <Sparkles className="h-3.5 w-3.5" /> Skill breakdown
+              </div>
+              <p className="text-[10px] font-bold text-muted-foreground">All-time avg · Last 5</p>
+            </div>
+            {agg.skills.pitch.count + agg.skills.breath.count + agg.skills.tone.count + agg.skills.smoothness.count === 0 ? (
+              <p className="mt-3 rounded-2xl bg-muted/40 p-4 text-center text-sm text-muted-foreground">
+                Record a few takes to see your skill breakdown.
+              </p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                <SkillRow label="Pitch accuracy" stat={agg.skills.pitch} barClass="bg-primary" />
+                <SkillRow label="Breath control" stat={agg.skills.breath} barClass="bg-secondary" />
+                <SkillRow label="Tone quality" stat={agg.skills.tone} barClass="bg-success" />
+                <SkillRow label="Smoothness" stat={agg.skills.smoothness} barClass="bg-accent" />
+                {(() => {
+                  const entries = [
+                    { k: "Pitch", s: agg.skills.pitch },
+                    { k: "Breath", s: agg.skills.breath },
+                    { k: "Tone", s: agg.skills.tone },
+                    { k: "Smoothness", s: agg.skills.smoothness },
+                  ].filter((e) => e.s.avg != null);
+                  if (entries.length < 2) return null;
+                  const strongest = [...entries].sort((a, b) => (b.s.avg ?? 0) - (a.s.avg ?? 0))[0];
+                  const weakest = [...entries].sort((a, b) => (a.s.avg ?? 0) - (b.s.avg ?? 0))[0];
+                  return (
+                    <p className="rounded-2xl bg-muted/40 p-3 text-xs text-muted-foreground">
+                      Strongest: <b className="text-foreground">{strongest.k}</b> · Focus on:{" "}
+                      <b className="text-foreground">{weakest.k}</b>
+                    </p>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Breakdown */}
         {agg && (
           <div className="rounded-3xl bg-card p-5 card-pop">
