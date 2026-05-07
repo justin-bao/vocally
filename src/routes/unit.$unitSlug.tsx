@@ -466,6 +466,73 @@ function UnitDetails() {
           );
         })}
       </section>
+
+      <Dialog open={!!expandedLessonId} onOpenChange={(open) => !open && setExpandedLessonId(null)}>
+        <DialogContent className="max-h-[85vh] overflow-hidden p-0 sm:max-w-md">
+          {(() => {
+            const lesson = lessons.find((l) => l.id === expandedLessonId);
+            if (!lesson) return null;
+            const all = attemptsByLesson[lesson.id] || [];
+            const p = progress[lesson.id];
+            return (
+              <>
+                <DialogHeader className="border-b border-border px-5 pb-3 pt-5 text-left">
+                  <DialogTitle className="font-display text-lg font-black">{lesson.title}</DialogTitle>
+                  <DialogDescription className="text-xs">
+                    {all.length} attempt{all.length === 1 ? "" : "s"}
+                    {p?.best_score ? ` · Best ${p.best_score}` : ""}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="max-h-[65vh] overflow-y-auto px-5 py-3">
+                  {all.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-muted-foreground">No attempts yet.</p>
+                  ) : (
+                    <ol className="space-y-2">
+                      {all.map((a, idx) => {
+                        const d = new Date(a.created_at);
+                        return (
+                          <li
+                            key={a.id}
+                            className="flex items-center justify-between gap-3 rounded-2xl bg-muted/50 px-3 py-2.5"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="font-display text-sm font-black">
+                                #{all.length - idx}
+                                <span className="ml-2 text-xs font-bold text-muted-foreground">
+                                  {d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                                </span>
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+                                {" · "}
+                                Pitch {a.pitch_score ?? "—"}
+                                {a.ai_feedback?.breath_control != null && ` · Breath ${a.ai_feedback.breath_control}`}
+                                {a.ai_feedback?.tone_quality != null && ` · Tone ${a.ai_feedback.tone_quality}`}
+                                {a.ai_feedback?.smoothness != null && ` · Smooth ${a.ai_feedback.smoothness}`}
+                              </p>
+                            </div>
+                            <div
+                              className={`grid h-10 w-12 flex-shrink-0 place-items-center rounded-xl font-mono text-sm font-black tabular-nums ${
+                                a.overall_score >= 80
+                                  ? "bg-success text-success-foreground"
+                                  : a.overall_score >= 60
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted text-foreground"
+                              }`}
+                            >
+                              {a.overall_score}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
