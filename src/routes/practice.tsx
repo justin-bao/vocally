@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { analyzeFreePractice } from "@/server/free-practice.functions";
 import { ArrowLeft, Mic, Square, RotateCcw, Sparkles, Loader2, Star, Music, Play, Pause, Send } from "lucide-react";
 import { toast } from "sonner";
+import { bumpStreak } from "@/lib/streak";
 
 export const Route = createFileRoute("/practice")({
   head: () => ({
