@@ -274,6 +274,7 @@ function LessonPage() {
           }
           await supabase.from("profiles").update({ last_practice_date: today, current_streak: streak }).eq("id", user.id);
         }
+        await loadLessonStats(user.id, lesson.id);
       }
     } catch (e: any) {
       console.error(e);
