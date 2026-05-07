@@ -84,6 +84,7 @@ function Profile() {
     if (profRes.data) {
       setDraftMin((profRes.data as Profile).daily_goal_minutes ?? 5);
       setDraftTakes((profRes.data as Profile).daily_goal_takes ?? 1);
+      setDraftName((profRes.data as Profile).display_name ?? "");
     }
 
     const free = freeRes.data ?? [];
