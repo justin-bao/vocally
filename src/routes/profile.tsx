@@ -53,6 +53,12 @@ interface Aggregates {
   songAttempts: number;
   lessonAttempts: number;
   recentDays: { date: string; count: number }[];
+  skills: {
+    pitch: { avg: number | null; recent: number | null; count: number };
+    breath: { avg: number | null; recent: number | null; count: number };
+    tone: { avg: number | null; recent: number | null; count: number };
+    smoothness: { avg: number | null; recent: number | null; count: number };
+  };
 }
 
 function Profile() {
@@ -82,9 +88,9 @@ function Profile() {
   const load = async () => {
     const [profRes, freeRes, songRes, lessonRes, progressRes, songsRes] = await Promise.all([
       supabase.from("profiles").select("display_name, current_streak, last_practice_date, created_at, daily_goal_minutes, daily_goal_takes").eq("id", user!.id).maybeSingle(),
-      supabase.from("free_practice_attempts").select("overall_score, duration_sec, created_at").eq("user_id", user!.id),
-      supabase.from("song_attempts").select("overall_score, duration_sec, created_at").eq("user_id", user!.id),
-      supabase.from("lesson_attempts").select("overall_score, created_at").eq("user_id", user!.id),
+      supabase.from("free_practice_attempts").select("overall_score, duration_sec, created_at, pitch_accuracy, breath_control, tone_quality, smoothness").eq("user_id", user!.id),
+      supabase.from("song_attempts").select("overall_score, duration_sec, created_at, pitch_accuracy, breath_control, tone_quality, smoothness").eq("user_id", user!.id),
+      supabase.from("lesson_attempts").select("overall_score, created_at, pitch_score, ai_feedback").eq("user_id", user!.id),
       supabase.from("lesson_progress").select("lesson_id, stars, completed").eq("user_id", user!.id),
       supabase.from("songs").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
     ]);
@@ -143,6 +149,42 @@ function Profile() {
     });
     setToday({ minutes: Math.round(todayMinutes * 10) / 10, takes: todayTakes });
 
+    // Skill breakdown — collect per-skill series with timestamps for avg + recent
+    type SkillPoint = { v: number; at: string };
+    const pitchPts: SkillPoint[] = [];
+    const breathPts: SkillPoint[] = [];
+    const tonePts: SkillPoint[] = [];
+    const smoothPts: SkillPoint[] = [];
+    const pushIf = (arr: SkillPoint[], v: unknown, at: string) => {
+      if (typeof v === "number" && v > 0) arr.push({ v, at });
+    };
+    free.forEach((a) => {
+      pushIf(pitchPts, a.pitch_accuracy, a.created_at);
+      pushIf(breathPts, a.breath_control, a.created_at);
+      pushIf(tonePts, a.tone_quality, a.created_at);
+      pushIf(smoothPts, a.smoothness, a.created_at);
+    });
+    songs.forEach((a) => {
+      pushIf(pitchPts, a.pitch_accuracy, a.created_at);
+      pushIf(breathPts, a.breath_control, a.created_at);
+      pushIf(tonePts, a.tone_quality, a.created_at);
+      pushIf(smoothPts, a.smoothness, a.created_at);
+    });
+    lessons.forEach((a) => {
+      const fb = (a.ai_feedback || {}) as { breath_control?: number; tone_quality?: number; smoothness?: number };
+      pushIf(pitchPts, a.pitch_score, a.created_at);
+      pushIf(breathPts, fb.breath_control, a.created_at);
+      pushIf(tonePts, fb.tone_quality, a.created_at);
+      pushIf(smoothPts, fb.smoothness, a.created_at);
+    });
+    const skillStat = (pts: SkillPoint[]) => {
+      if (pts.length === 0) return { avg: null, recent: null, count: 0 };
+      const avg = Math.round(pts.reduce((acc, p) => acc + p.v, 0) / pts.length);
+      const sorted = [...pts].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 5);
+      const recent = Math.round(sorted.reduce((acc, p) => acc + p.v, 0) / sorted.length);
+      return { avg, recent, count: pts.length };
+    };
+
     setAgg({
       totalAttempts,
       totalMinutes: Math.round(totalSeconds / 60),
@@ -156,6 +198,12 @@ function Profile() {
       songAttempts: songs.length,
       lessonAttempts: lessons.length,
       recentDays: days,
+      skills: {
+        pitch: skillStat(pitchPts),
+        breath: skillStat(breathPts),
+        tone: skillStat(tonePts),
+        smoothness: skillStat(smoothPts),
+      },
     });
   };
 
@@ -455,6 +503,47 @@ function Profile() {
           </div>
         )}
 
+        {/* Skill breakdown */}
+        {agg && (
+          <div className="rounded-3xl bg-card p-5 card-pop">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <Sparkles className="h-3.5 w-3.5" /> Skill breakdown
+              </div>
+              <p className="text-[10px] font-bold text-muted-foreground">All-time avg · Last 5</p>
+            </div>
+            {agg.skills.pitch.count + agg.skills.breath.count + agg.skills.tone.count + agg.skills.smoothness.count === 0 ? (
+              <p className="mt-3 rounded-2xl bg-muted/40 p-4 text-center text-sm text-muted-foreground">
+                Record a few takes to see your skill breakdown.
+              </p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                <SkillRow label="Pitch accuracy" stat={agg.skills.pitch} barClass="bg-primary" />
+                <SkillRow label="Breath control" stat={agg.skills.breath} barClass="bg-secondary" />
+                <SkillRow label="Tone quality" stat={agg.skills.tone} barClass="bg-success" />
+                <SkillRow label="Smoothness" stat={agg.skills.smoothness} barClass="bg-accent" />
+                {(() => {
+                  const entries = [
+                    { k: "Pitch", s: agg.skills.pitch },
+                    { k: "Breath", s: agg.skills.breath },
+                    { k: "Tone", s: agg.skills.tone },
+                    { k: "Smoothness", s: agg.skills.smoothness },
+                  ].filter((e) => e.s.avg != null);
+                  if (entries.length < 2) return null;
+                  const strongest = [...entries].sort((a, b) => (b.s.avg ?? 0) - (a.s.avg ?? 0))[0];
+                  const weakest = [...entries].sort((a, b) => (a.s.avg ?? 0) - (b.s.avg ?? 0))[0];
+                  return (
+                    <p className="rounded-2xl bg-muted/40 p-3 text-xs text-muted-foreground">
+                      Strongest: <b className="text-foreground">{strongest.k}</b> · Focus on:{" "}
+                      <b className="text-foreground">{weakest.k}</b>
+                    </p>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Breakdown */}
         {agg && (
           <div className="rounded-3xl bg-card p-5 card-pop">
@@ -618,6 +707,62 @@ function GoalEditor({
         <span>{min}</span>
         <span>{max}</span>
       </div>
+    </div>
+  );
+}
+
+function SkillRow({
+  label,
+  stat,
+  barClass,
+}: {
+  label: string;
+  stat: { avg: number | null; recent: number | null; count: number };
+  barClass: string;
+}) {
+  const avg = stat.avg ?? 0;
+  const recent = stat.recent ?? avg;
+  const delta = stat.avg != null && stat.recent != null ? stat.recent - stat.avg : 0;
+  const noData = stat.avg == null;
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-xs">
+        <span className="font-bold text-foreground">{label}</span>
+        {noData ? (
+          <span className="text-muted-foreground">No data</span>
+        ) : (
+          <span className="flex items-center gap-2">
+            <span className="font-display font-black tabular-nums">{avg}</span>
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
+                delta > 0
+                  ? "bg-success/20 text-success"
+                  : delta < 0
+                    ? "bg-destructive/15 text-destructive"
+                    : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {delta > 0 ? "▲" : delta < 0 ? "▼" : "•"} {Math.abs(delta)}
+            </span>
+          </span>
+        )}
+      </div>
+      <div className="relative h-2 overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full ${barClass} ${noData ? "opacity-30" : ""} transition-all`}
+          style={{ width: `${avg}%` }}
+        />
+        {!noData && stat.recent != null && (
+          <div
+            className="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 rounded bg-foreground"
+            style={{ left: `calc(${recent}% - 1px)` }}
+            title={`Recent avg: ${recent}`}
+          />
+        )}
+      </div>
+      <p className="mt-0.5 text-[10px] text-muted-foreground">
+        {noData ? "No takes scored this skill yet" : `${stat.count} ${stat.count === 1 ? "take" : "takes"} scored`}
+      </p>
     </div>
   );
 }
