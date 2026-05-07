@@ -134,12 +134,12 @@ function Profile() {
     return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const todayStr = new Date().toISOString().slice(0, 10);
   const y = new Date(); y.setDate(y.getDate() - 1);
   const yStr = y.toISOString().slice(0, 10);
-  const streakActive = profile?.last_practice_date === today || profile?.last_practice_date === yStr;
+  const streakActive = profile?.last_practice_date === todayStr || profile?.last_practice_date === yStr;
   const streak = profile?.current_streak ?? 0;
-  const practicedToday = profile?.last_practice_date === today;
+  const practicedToday = profile?.last_practice_date === todayStr;
   const totalLessons = LESSONS.length;
 
   const maxDay = agg ? Math.max(1, ...agg.recentDays.map((d) => d.count)) : 1;
