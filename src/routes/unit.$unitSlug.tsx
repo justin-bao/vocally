@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LESSONS, UNITS } from "@/lib/lessons";
-import { ArrowLeft, Check, ChevronRight, Lock, Mic, Search, Star, Trophy, Flame, X } from "lucide-react";
+import { ArrowLeft, Check, ChevronRight, List, Lock, Mic, Search, Star, Trophy, Flame, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export const slugifyUnit = (name: string) =>
   name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
