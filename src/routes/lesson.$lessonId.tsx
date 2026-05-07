@@ -534,7 +534,14 @@ function ScoreChip({ label, value, muted }: { label: string; value: number; mute
   );
 }
 
-// ---------- audio helpers ----------
+function StatBox({ label, value, suffix }: { label: string; value: number; suffix?: string }) {
+  return (
+    <div className="rounded-xl bg-muted/40 p-2">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="font-display text-xl font-black tabular-nums">{value}{suffix && <span className="ml-0.5 text-sm">{suffix}</span>}</p>
+    </div>
+  );
+}
 async function blobToBase64(blob: Blob): Promise<string> {
   const buf = await blob.arrayBuffer();
   const bytes = new Uint8Array(buf);
