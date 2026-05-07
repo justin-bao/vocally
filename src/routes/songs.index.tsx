@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Plus, Music2, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Music2, Trash2, Search, Mic, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/songs/")({
@@ -100,16 +100,46 @@ function SongsList() {
           <div className="rounded-3xl bg-card p-6 text-center text-muted-foreground card-pop">Loading…</div>
         )}
         {songs && songs.length === 0 && (
-          <div className="rounded-3xl bg-card p-8 text-center card-pop">
-            <Music2 className="mx-auto h-8 w-8 text-muted-foreground" />
-            <p className="mt-3 font-display text-lg font-black">Build your library</p>
-            <p className="mt-1 text-sm text-muted-foreground">Import a song to start coaching.</p>
-            <Link
-              to="/songs/import"
-              className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-3 font-extrabold uppercase tracking-wide text-primary-foreground btn-pop"
-            >
-              <Plus className="h-4 w-4" /> Import a song
-            </Link>
+          <div className="overflow-hidden rounded-3xl bg-card card-pop">
+            <div className="bg-gradient-sunset px-6 py-8 text-center">
+              <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-primary text-primary-foreground btn-pop">
+                <Music2 className="h-8 w-8" />
+              </div>
+              <p className="mt-4 font-display text-2xl font-black">Your library is empty</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Import a song and get a personal coach for it in under a minute.
+              </p>
+            </div>
+
+            <ol className="space-y-3 px-6 py-6">
+              <Step
+                n={1}
+                icon={<Search className="h-4 w-4" />}
+                title="Import a song"
+                desc="Search iTunes, paste a YouTube link, or upload an MP3."
+              />
+              <Step
+                n={2}
+                icon={<Sparkles className="h-4 w-4" />}
+                title="Get a coaching plan"
+                desc="AI maps the key, range, tricky phrases, and breath spots."
+              />
+              <Step
+                n={3}
+                icon={<Mic className="h-4 w-4" />}
+                title="Record & track progress"
+                desc="Sing along or a cappella — see scores improve over time."
+              />
+            </ol>
+
+            <div className="border-t border-border px-6 py-5">
+              <Link
+                to="/songs/import"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-4 font-extrabold uppercase tracking-wide text-primary-foreground btn-pop"
+              >
+                <Plus className="h-4 w-4" /> Import your first song
+              </Link>
+            </div>
           </div>
         )}
         {songs?.map((s) => {
@@ -169,6 +199,23 @@ function SongsList() {
         })}
       </div>
     </main>
+  );
+}
+
+function Step({ n, icon, title, desc }: { n: number; icon: React.ReactNode; title: string; desc: string }) {
+  return (
+    <li className="flex items-start gap-3">
+      <div className="relative grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        {icon}
+        <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-primary text-[10px] font-black text-primary-foreground">
+          {n}
+        </span>
+      </div>
+      <div className="min-w-0">
+        <p className="font-display text-sm font-black">{title}</p>
+        <p className="text-xs text-muted-foreground">{desc}</p>
+      </div>
+    </li>
   );
 }
 
