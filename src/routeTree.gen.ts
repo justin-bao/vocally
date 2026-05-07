@@ -16,6 +16,7 @@ import { Route as HistoryRouteImport } from './routes/history'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SongsIndexRouteImport } from './routes/songs.index'
+import { Route as UnitUnitSlugRouteImport } from './routes/unit.$unitSlug'
 import { Route as SongsImportRouteImport } from './routes/songs.import'
 import { Route as SongsSongIdRouteImport } from './routes/songs.$songId'
 import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
@@ -55,6 +56,11 @@ const SongsIndexRoute = SongsIndexRouteImport.update({
   path: '/songs/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UnitUnitSlugRoute = UnitUnitSlugRouteImport.update({
+  id: '/unit/$unitSlug',
+  path: '/unit/$unitSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SongsImportRoute = SongsImportRouteImport.update({
   id: '/songs/import',
   path: '/songs/import',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/songs/$songId': typeof SongsSongIdRoute
   '/songs/import': typeof SongsImportRoute
+  '/unit/$unitSlug': typeof UnitUnitSlugRoute
   '/songs/': typeof SongsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/songs/$songId': typeof SongsSongIdRoute
   '/songs/import': typeof SongsImportRoute
+  '/unit/$unitSlug': typeof UnitUnitSlugRoute
   '/songs': typeof SongsIndexRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/songs/$songId': typeof SongsSongIdRoute
   '/songs/import': typeof SongsImportRoute
+  '/unit/$unitSlug': typeof UnitUnitSlugRoute
   '/songs/': typeof SongsIndexRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/lesson/$lessonId'
     | '/songs/$songId'
     | '/songs/import'
+    | '/unit/$unitSlug'
     | '/songs/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/lesson/$lessonId'
     | '/songs/$songId'
     | '/songs/import'
+    | '/unit/$unitSlug'
     | '/songs'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/lesson/$lessonId'
     | '/songs/$songId'
     | '/songs/import'
+    | '/unit/$unitSlug'
     | '/songs/'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   LessonLessonIdRoute: typeof LessonLessonIdRoute
   SongsSongIdRoute: typeof SongsSongIdRoute
   SongsImportRoute: typeof SongsImportRoute
+  UnitUnitSlugRoute: typeof UnitUnitSlugRoute
   SongsIndexRoute: typeof SongsIndexRoute
 }
 
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SongsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/unit/$unitSlug': {
+      id: '/unit/$unitSlug'
+      path: '/unit/$unitSlug'
+      fullPath: '/unit/$unitSlug'
+      preLoaderRoute: typeof UnitUnitSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/songs/import': {
       id: '/songs/import'
       path: '/songs/import'
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   LessonLessonIdRoute: LessonLessonIdRoute,
   SongsSongIdRoute: SongsSongIdRoute,
   SongsImportRoute: SongsImportRoute,
+  UnitUnitSlugRoute: UnitUnitSlugRoute,
   SongsIndexRoute: SongsIndexRoute,
 }
 export const routeTree = rootRouteImport

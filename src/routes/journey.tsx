@@ -212,7 +212,11 @@ function Journey() {
           return (
           <section key={unit.name}>
             <div className="mb-4 rounded-3xl bg-card p-5 card-pop">
-              <div className="flex items-center gap-3">
+              <Link
+                to="/unit/$unitSlug"
+                params={{ unitSlug: unit.name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") }}
+                className="-m-2 flex items-center gap-3 rounded-2xl p-2 transition hover:bg-muted/40"
+              >
                 <span className="text-2xl">{unit.icon}</span>
                 <div className="flex-1">
                   <h2 className="font-display text-xl font-black leading-tight">{unit.name}</h2>
@@ -220,12 +224,14 @@ function Journey() {
                     {doneCount} / {total} lessons · {pct}%
                   </p>
                 </div>
-                {unitComplete && (
+                {unitComplete ? (
                   <span className="rounded-full bg-success/15 px-2.5 py-1 text-xs font-black text-success">
                     Complete
                   </span>
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 )}
-              </div>
+              </Link>
               <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-primary transition-all"
