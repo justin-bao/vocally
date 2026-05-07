@@ -6,6 +6,7 @@ import { analyzeSongAttempt } from "@/server/songs.functions";
 import { blobToBase64, blobToWav } from "@/lib/audio-utils";
 import { ArrowLeft, Mic, Square, Loader2, Play, Pause, Star, Sparkles, Music2, Youtube } from "lucide-react";
 import { toast } from "sonner";
+import { bumpStreak } from "@/lib/streak";
 
 export const Route = createFileRoute("/songs/$songId")({
   head: () => ({ meta: [{ title: "Song coach — Vocally" }] }),
