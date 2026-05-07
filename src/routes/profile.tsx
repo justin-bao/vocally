@@ -249,7 +249,72 @@ function Profile() {
           )}
         </div>
 
-        {/* Activity heatmap (last 14 days) */}
+        {/* Daily goal */}
+        {profile && (() => {
+          const goalMin = profile.daily_goal_minutes ?? 5;
+          const goalTakes = profile.daily_goal_takes ?? 1;
+          const minPct = Math.min(100, (today.minutes / goalMin) * 100);
+          const takesPct = Math.min(100, (today.takes / goalTakes) * 100);
+          const minHit = today.minutes >= goalMin;
+          const takesHit = today.takes >= goalTakes;
+          const allHit = minHit && takesHit;
+          return (
+            <div className="rounded-3xl bg-card p-5 card-pop">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <Target className="h-3.5 w-3.5" /> Today's goal
+                </div>
+                {!editGoal ? (
+                  <button
+                    onClick={() => setEditGoal(true)}
+                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-muted-foreground hover:bg-muted"
+                  >
+                    <Pencil className="h-3 w-3" /> Edit
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => { setEditGoal(false); setDraftMin(goalMin); setDraftTakes(goalTakes); }}
+                      className="grid h-7 w-7 place-items-center rounded-lg text-muted-foreground hover:bg-muted"
+                      aria-label="Cancel"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={saveGoal}
+                      disabled={savingGoal}
+                      className="grid h-7 w-7 place-items-center rounded-lg bg-primary text-primary-foreground disabled:opacity-50"
+                      aria-label="Save"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {!editGoal ? (
+                <>
+                  {allHit && (
+                    <p className="mt-3 rounded-2xl bg-success/15 p-3 text-sm font-bold text-success">
+                      🎉 Goal reached! Great work today.
+                    </p>
+                  )}
+                  <div className="mt-3 space-y-3">
+                    <GoalBar label="Minutes sung" current={today.minutes} goal={goalMin} pct={minPct} hit={minHit} unit="min" />
+                    <GoalBar label="Takes recorded" current={today.takes} goal={goalTakes} pct={takesPct} hit={takesHit} />
+                  </div>
+                </>
+              ) : (
+                <div className="mt-4 space-y-4">
+                  <GoalEditor label="Minutes per day" value={draftMin} onChange={setDraftMin} min={1} max={60} unit="min" />
+                  <GoalEditor label="Takes per day" value={draftTakes} onChange={setDraftTakes} min={1} max={10} />
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+
         {agg && (
           <div className="rounded-3xl bg-card p-5 card-pop">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
