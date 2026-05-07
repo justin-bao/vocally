@@ -47,6 +47,31 @@ function LessonPage() {
   const [pitchScore, setPitchScore] = useState<number | null>(null);
   const [aiResult, setAiResult] = useState<AIResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [lessonStats, setLessonStats] = useState<{
+    best_score: number; stars: number; attempts_count: number;
+    current_streak: number; best_streak: number;
+  } | null>(null);
+  const [recentAttempts, setRecentAttempts] = useState<Array<{
+    id: string; overall_score: number; created_at: string;
+  }>>([]);
+
+  const loadLessonStats = async (uid: string, lid: string) => {
+    const [{ data: prog }, { data: atts }] = await Promise.all([
+      supabase.from("lesson_progress")
+        .select("best_score, stars, attempts_count, current_streak, best_streak")
+        .eq("user_id", uid).eq("lesson_id", lid).maybeSingle(),
+      supabase.from("lesson_attempts")
+        .select("id, overall_score, created_at")
+        .eq("user_id", uid).eq("lesson_id", lid)
+        .order("created_at", { ascending: false }).limit(5),
+    ]);
+    setLessonStats(prog ?? null);
+    setRecentAttempts(atts ?? []);
+  };
+
+  useEffect(() => {
+    if (user && lesson) loadLessonStats(user.id, lesson.id);
+  }, [user, lesson?.id]);
 
   const samplesRef = useRef<PitchSample[]>([]);
   const tonePlayer = useRef<TonePlayer>(new TonePlayer());
@@ -179,36 +204,59 @@ function LessonPage() {
           ai_feedback: ai as any,
         });
 
-        // Upsert progress
+        // Upsert progress with per-lesson attempt count + streak tracking
+        const today = new Date().toISOString().slice(0, 10);
         const { data: existing } = await supabase
           .from("lesson_progress")
-          .select("best_score, stars")
+          .select("best_score, stars, attempts_count, current_streak, best_streak, last_attempt_date")
           .eq("user_id", user.id)
           .eq("lesson_id", lesson.id)
           .maybeSingle();
 
         if (existing) {
-          if (overall > existing.best_score) {
-            await supabase
-              .from("lesson_progress")
-              .update({ best_score: overall, stars: Math.max(existing.stars, stars), completed: true, updated_at: new Date().toISOString() })
-              .eq("user_id", user.id)
-              .eq("lesson_id", lesson.id);
+          const last = existing.last_attempt_date;
+          const y = new Date(); y.setDate(y.getDate() - 1);
+          const yStr = y.toISOString().slice(0, 10);
+          let lessonStreak = existing.current_streak ?? 0;
+          if (last === today) {
+            // already counted today, keep streak
+            if (!lessonStreak) lessonStreak = 1;
+          } else if (last === yStr) {
+            lessonStreak = lessonStreak + 1;
           } else {
-            await supabase
-              .from("lesson_progress")
-              .update({ completed: true, updated_at: new Date().toISOString() })
-              .eq("user_id", user.id)
-              .eq("lesson_id", lesson.id);
+            lessonStreak = 1;
           }
+          const bestStreak = Math.max(existing.best_streak ?? 0, lessonStreak);
+          const isBest = overall > existing.best_score;
+          await supabase
+            .from("lesson_progress")
+            .update({
+              best_score: isBest ? overall : existing.best_score,
+              stars: Math.max(existing.stars, stars),
+              completed: true,
+              attempts_count: (existing.attempts_count ?? 0) + 1,
+              current_streak: lessonStreak,
+              best_streak: bestStreak,
+              last_attempt_date: today,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", user.id)
+            .eq("lesson_id", lesson.id);
         } else {
           await supabase.from("lesson_progress").insert({
-            user_id: user.id, lesson_id: lesson.id, best_score: overall, stars, completed: true,
+            user_id: user.id,
+            lesson_id: lesson.id,
+            best_score: overall,
+            stars,
+            completed: true,
+            attempts_count: 1,
+            current_streak: 1,
+            best_streak: 1,
+            last_attempt_date: today,
           });
         }
 
         // Update streak
-        const today = new Date().toISOString().slice(0, 10);
         const { data: prof } = await supabase
           .from("profiles")
           .select("last_practice_date, current_streak")
@@ -226,6 +274,7 @@ function LessonPage() {
           }
           await supabase.from("profiles").update({ last_practice_date: today, current_streak: streak }).eq("id", user.id);
         }
+        await loadLessonStats(user.id, lesson.id);
       }
     } catch (e: any) {
       console.error(e);
@@ -282,7 +331,42 @@ function LessonPage() {
           </div>
         </div>
 
-        {/* Pitch track viz */}
+        {/* Per-lesson stats & history */}
+        {(phase === "intro" || phase === "done") && lessonStats && lessonStats.attempts_count > 0 && (
+          <div className="rounded-3xl bg-card p-5 card-pop">
+            <div className="flex items-center justify-between">
+              <p className="font-display text-base font-black">Your progress</p>
+              <div className="flex gap-0.5">
+                {[1,2,3].map(n => (
+                  <Star key={n} className={`h-4 w-4 ${n <= lessonStats.stars ? "fill-primary text-primary" : "text-muted-foreground/25"}`} />
+                ))}
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+              <StatBox label="Best" value={lessonStats.best_score} />
+              <StatBox label="Tries" value={lessonStats.attempts_count} />
+              <StatBox label="Streak" value={lessonStats.current_streak} suffix="🔥" />
+              <StatBox label="Best 🔥" value={lessonStats.best_streak} />
+            </div>
+            {recentAttempts.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Recent attempts</p>
+                <ul className="mt-2 space-y-1">
+                  {recentAttempts.map(a => (
+                    <li key={a.id} className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2 text-sm">
+                      <span className="text-muted-foreground">
+                        {new Date(a.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                        {" · "}
+                        {new Date(a.created_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      <span className="font-display font-black tabular-nums">{a.overall_score}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
         {(phase === "recording" || phase === "ready" || phase === "listening") && (
           <PitchTrack
             samples={samples}
@@ -450,7 +534,14 @@ function ScoreChip({ label, value, muted }: { label: string; value: number; mute
   );
 }
 
-// ---------- audio helpers ----------
+function StatBox({ label, value, suffix }: { label: string; value: number; suffix?: string }) {
+  return (
+    <div className="rounded-xl bg-muted/40 p-2">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="font-display text-xl font-black tabular-nums">{value}{suffix && <span className="ml-0.5 text-sm">{suffix}</span>}</p>
+    </div>
+  );
+}
 async function blobToBase64(blob: Blob): Promise<string> {
   const buf = await blob.arrayBuffer();
   const bytes = new Uint8Array(buf);
