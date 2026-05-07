@@ -84,7 +84,7 @@ function ImportSong() {
 
       const plan = await planPromise;
       if (plan) {
-        await supabase.from("songs").update({ ai_plan: plan }).eq("id", inserted.id);
+        await supabase.from("songs").update({ ai_plan: plan as any }).eq("id", inserted.id);
       }
 
       toast.success("Song added");
