@@ -168,6 +168,28 @@ function Profile() {
     setEditGoal(false);
     toast.success("Goal updated");
   };
+
+  const saveName = async () => {
+    if (!user) return;
+    const name = draftName.trim().slice(0, 60);
+    if (!name) {
+      toast.error("Name can't be empty");
+      return;
+    }
+    setSavingName(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: name })
+      .eq("id", user.id);
+    setSavingName(false);
+    if (error) {
+      toast.error("Couldn't save name");
+      return;
+    }
+    setProfile((p) => (p ? { ...p, display_name: name } : p));
+    setEditName(false);
+    toast.success("Name updated");
+  };
   if (loading || !user) {
     return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
   }
