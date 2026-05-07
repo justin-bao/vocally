@@ -114,6 +114,20 @@ function Journey() {
         </Link>
 
         <Link
+          to="/songs"
+          className="mt-3 flex items-center gap-4 rounded-3xl bg-accent p-5 card-pop transition hover:scale-[1.01]"
+        >
+          <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl bg-foreground/10">
+            <Music className="h-6 w-6" />
+          </div>
+          <div className="flex-1">
+            <p className="font-display text-lg font-black leading-tight">My songs</p>
+            <p className="text-xs text-muted-foreground">Import a track and get a song-specific coach</p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </Link>
+
+        <Link
           to="/history"
           className="mt-3 flex items-center justify-between rounded-2xl bg-card px-5 py-3 card-pop transition hover:scale-[1.01]"
         >
