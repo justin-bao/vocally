@@ -458,29 +458,46 @@ function ScoreChip({ label, value }: { label: string; value: number }) {
 const PEAK_BARS = 56;
 
 function Waveform({ peaks, progress, onSeek }: { peaks: number[] | null; progress: number; onSeek: (p: number) => void }) {
+  const loading = peaks === null;
   const bars = peaks ?? new Array(PEAK_BARS).fill(0.15);
   return (
     <button
       type="button"
+      disabled={loading}
       onClick={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         onSeek(p);
       }}
-      className="flex h-12 w-full items-center gap-[2px] rounded-xl bg-muted/40 px-2"
-      aria-label="Audio waveform — click to seek"
+      className="relative flex h-12 w-full items-center gap-[2px] rounded-xl bg-muted/40 px-2"
+      aria-label={loading ? "Generating waveform" : "Audio waveform — click to seek"}
+      aria-busy={loading}
     >
       {bars.map((v, i) => {
-        const played = i / bars.length < progress;
+        const played = !loading && i / bars.length < progress;
         const h = Math.max(8, Math.round(v * 100));
         return (
           <span
             key={i}
-            className={`flex-1 rounded-full transition-colors ${played ? "bg-primary" : "bg-muted-foreground/30"}`}
-            style={{ height: `${h}%` }}
+            className={`flex-1 rounded-full transition-colors ${
+              loading
+                ? "animate-pulse bg-muted-foreground/25"
+                : played
+                  ? "bg-primary"
+                  : "bg-muted-foreground/30"
+            }`}
+            style={{
+              height: `${h}%`,
+              animationDelay: loading ? `${i * 30}ms` : undefined,
+            }}
           />
         );
       })}
+      {loading && (
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <Loader2 className="h-3 w-3 animate-spin" /> Generating waveform
+        </span>
+      )}
     </button>
   );
 }
