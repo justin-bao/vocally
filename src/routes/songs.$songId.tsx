@@ -171,7 +171,7 @@ function SongDetail() {
         tips: ai.tips,
       });
       if (error) console.error(error);
-      else toast.success("Saved");
+      else { toast.success("Saved"); void bumpStreak(user.id); }
       await load();
     } catch (e: any) {
       console.error(e);
