@@ -146,6 +146,24 @@ function Profile() {
     });
   };
 
+  const saveGoal = async () => {
+    if (!user) return;
+    const min = Math.max(1, Math.min(120, Math.round(draftMin)));
+    const takes = Math.max(1, Math.min(20, Math.round(draftTakes)));
+    setSavingGoal(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ daily_goal_minutes: min, daily_goal_takes: takes })
+      .eq("id", user.id);
+    setSavingGoal(false);
+    if (error) {
+      toast.error("Couldn't save goal");
+      return;
+    }
+    setProfile((p) => (p ? { ...p, daily_goal_minutes: min, daily_goal_takes: takes } : p));
+    setEditGoal(false);
+    toast.success("Goal updated");
+  };
   if (loading || !user) {
     return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
   }
