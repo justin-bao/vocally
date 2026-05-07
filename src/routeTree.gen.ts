@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SongsIndexRouteImport } from './routes/songs.index'
 import { Route as SongsImportRouteImport } from './routes/songs.import'
+import { Route as SongsSongIdRouteImport } from './routes/songs.$songId'
 import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
 
 const PracticeRoute = PracticeRouteImport.update({
@@ -53,6 +54,11 @@ const SongsImportRoute = SongsImportRouteImport.update({
   path: '/songs/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SongsSongIdRoute = SongsSongIdRouteImport.update({
+  id: '/songs/$songId',
+  path: '/songs/$songId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LessonLessonIdRoute = LessonLessonIdRouteImport.update({
   id: '/lesson/$lessonId',
   path: '/lesson/$lessonId',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/journey': typeof JourneyRoute
   '/practice': typeof PracticeRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
+  '/songs/$songId': typeof SongsSongIdRoute
   '/songs/import': typeof SongsImportRoute
   '/songs/': typeof SongsIndexRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/journey': typeof JourneyRoute
   '/practice': typeof PracticeRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
+  '/songs/$songId': typeof SongsSongIdRoute
   '/songs/import': typeof SongsImportRoute
   '/songs': typeof SongsIndexRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/journey': typeof JourneyRoute
   '/practice': typeof PracticeRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
+  '/songs/$songId': typeof SongsSongIdRoute
   '/songs/import': typeof SongsImportRoute
   '/songs/': typeof SongsIndexRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/journey'
     | '/practice'
     | '/lesson/$lessonId'
+    | '/songs/$songId'
     | '/songs/import'
     | '/songs/'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/journey'
     | '/practice'
     | '/lesson/$lessonId'
+    | '/songs/$songId'
     | '/songs/import'
     | '/songs'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/journey'
     | '/practice'
     | '/lesson/$lessonId'
+    | '/songs/$songId'
     | '/songs/import'
     | '/songs/'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   JourneyRoute: typeof JourneyRoute
   PracticeRoute: typeof PracticeRoute
   LessonLessonIdRoute: typeof LessonLessonIdRoute
+  SongsSongIdRoute: typeof SongsSongIdRoute
   SongsImportRoute: typeof SongsImportRoute
   SongsIndexRoute: typeof SongsIndexRoute
 }
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SongsImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/songs/$songId': {
+      id: '/songs/$songId'
+      path: '/songs/$songId'
+      fullPath: '/songs/$songId'
+      preLoaderRoute: typeof SongsSongIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lesson/$lessonId': {
       id: '/lesson/$lessonId'
       path: '/lesson/$lessonId'
@@ -202,9 +222,19 @@ const rootRouteChildren: RootRouteChildren = {
   JourneyRoute: JourneyRoute,
   PracticeRoute: PracticeRoute,
   LessonLessonIdRoute: LessonLessonIdRoute,
+  SongsSongIdRoute: SongsSongIdRoute,
   SongsImportRoute: SongsImportRoute,
   SongsIndexRoute: SongsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
