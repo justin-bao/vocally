@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LESSONS } from "@/lib/lessons";
-import { ArrowLeft, Flame, Star, Mic, Music2, Trophy, Calendar, Sparkles, LogOut, Target, Pencil, Check, X } from "lucide-react";
+import { ArrowLeft, Flame, Star, Mic, Music2, Trophy, Calendar, Sparkles, LogOut, Target, Pencil, Check, X, Award, Lock } from "lucide-react";
 import { toast } from "sonner";
 import mascot from "@/assets/mascot.png";
 
