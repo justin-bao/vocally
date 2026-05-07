@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LESSONS, UNITS } from "@/lib/lessons";
-import { Mic, LogOut, Star, Lock, Check, Flame, Music, ChevronRight, UserRound } from "lucide-react";
+import { recommendLesson, type AttemptScores } from "@/lib/recommend";
+import { Mic, LogOut, Star, Lock, Check, Flame, Music, ChevronRight, UserRound, Sparkles } from "lucide-react";
 import mascot from "@/assets/mascot.png";
 
 export const Route = createFileRoute("/journey")({
@@ -28,6 +29,7 @@ function Journey() {
   const nav = useNavigate();
   const [progress, setProgress] = useState<Record<string, ProgressRow>>({});
   const [profile, setProfile] = useState<{ display_name: string | null; current_streak: number } | null>(null);
+  const [attempts, setAttempts] = useState<AttemptScores[]>([]);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" });
@@ -36,16 +38,29 @@ function Journey() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: prog }, { data: prof }] = await Promise.all([
+      const [{ data: prog }, { data: prof }, { data: atts }] = await Promise.all([
         supabase.from("lesson_progress").select("lesson_id, best_score, completed, stars").eq("user_id", user.id),
         supabase.from("profiles").select("display_name, current_streak").eq("id", user.id).maybeSingle(),
+        supabase.from("lesson_attempts")
+          .select("lesson_id, pitch_score, overall_score, ai_feedback, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(20),
       ]);
       const map: Record<string, ProgressRow> = {};
       (prog || []).forEach((p) => (map[p.lesson_id] = p as ProgressRow));
       setProgress(map);
       setProfile(prof || { display_name: null, current_streak: 0 });
+      setAttempts((atts || []) as unknown as AttemptScores[]);
     })();
   }, [user]);
+
+  const recommendation = useMemo(() => {
+    const progressList = Object.values(progress).map((p) => ({
+      lesson_id: p.lesson_id, completed: p.completed, best_score: p.best_score,
+    }));
+    return recommendLesson(attempts, progressList);
+  }, [attempts, progress]);
 
   if (loading || !user) {
     return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
@@ -110,6 +125,44 @@ function Journey() {
             </p>
           </div>
         </div>
+
+        {recommendation && (
+          <Link
+            to="/lesson/$lessonId"
+            params={{ lessonId: recommendation.lesson.id }}
+            className="mt-4 block rounded-3xl bg-primary p-5 text-primary-foreground btn-pop transition hover:scale-[1.01]"
+          >
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wide opacity-90">
+              <Sparkles className="h-3.5 w-3.5" />
+              Coach pick for you
+            </div>
+            <p className="mt-1 font-display text-lg font-black leading-tight">
+              {recommendation.lesson.title}
+            </p>
+            <p className="mt-1 text-xs opacity-95">{recommendation.reason}</p>
+            {recommendation.sampleSize > 0 && (
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {(["pitch", "breath", "tone", "smoothness"] as const).map((s) => {
+                  const isWeak = s === recommendation.weakestSkill;
+                  return (
+                    <div
+                      key={s}
+                      className={`rounded-xl px-2 py-1.5 text-center ${
+                        isWeak ? "bg-primary-foreground/25 ring-1 ring-primary-foreground/50" : "bg-primary-foreground/10"
+                      }`}
+                    >
+                      <p className="text-[9px] font-bold uppercase tracking-wide opacity-80">{s}</p>
+                      <p className="font-display text-sm font-black">{recommendation.averages[s]}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="mt-3 flex items-center justify-end gap-1 text-xs font-black">
+              Start lesson <ChevronRight className="h-4 w-4" />
+            </div>
+          </Link>
+        )}
 
         <Link
           to="/practice"
