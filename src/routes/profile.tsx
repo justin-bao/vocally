@@ -149,6 +149,41 @@ function Profile() {
     });
     setToday({ minutes: Math.round(todayMinutes * 10) / 10, takes: todayTakes });
 
+    // Skill breakdown — collect per-skill series with timestamps for avg + recent
+    type SkillPoint = { v: number; at: string };
+    const pitchPts: SkillPoint[] = [];
+    const breathPts: SkillPoint[] = [];
+    const tonePts: SkillPoint[] = [];
+    const smoothPts: SkillPoint[] = [];
+    const pushIf = (arr: SkillPoint[], v: unknown, at: string) => {
+      if (typeof v === "number" && v > 0) arr.push({ v, at });
+    };
+    free.forEach((a) => {
+      pushIf(pitchPts, a.pitch_accuracy, a.created_at);
+      pushIf(breathPts, a.breath_control, a.created_at);
+      pushIf(tonePts, a.tone_quality, a.created_at);
+      pushIf(smoothPts, a.smoothness, a.created_at);
+    });
+    songs.forEach((a) => {
+      pushIf(pitchPts, a.pitch_accuracy, a.created_at);
+      pushIf(breathPts, a.breath_control, a.created_at);
+      pushIf(tonePts, a.tone_quality, a.created_at);
+      pushIf(smoothPts, a.smoothness, a.created_at);
+    });
+    lessons.forEach((a: { pitch_score?: number | null; ai_feedback?: { breath_control?: number; tone_quality?: number; smoothness?: number } | null; created_at: string }) => {
+      pushIf(pitchPts, a.pitch_score, a.created_at);
+      pushIf(breathPts, a.ai_feedback?.breath_control, a.created_at);
+      pushIf(tonePts, a.ai_feedback?.tone_quality, a.created_at);
+      pushIf(smoothPts, a.ai_feedback?.smoothness, a.created_at);
+    });
+    const skillStat = (pts: SkillPoint[]) => {
+      if (pts.length === 0) return { avg: null, recent: null, count: 0 };
+      const avg = Math.round(pts.reduce((acc, p) => acc + p.v, 0) / pts.length);
+      const sorted = [...pts].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 5);
+      const recent = Math.round(sorted.reduce((acc, p) => acc + p.v, 0) / sorted.length);
+      return { avg, recent, count: pts.length };
+    };
+
     setAgg({
       totalAttempts,
       totalMinutes: Math.round(totalSeconds / 60),
@@ -162,6 +197,12 @@ function Profile() {
       songAttempts: songs.length,
       lessonAttempts: lessons.length,
       recentDays: days,
+      skills: {
+        pitch: skillStat(pitchPts),
+        breath: skillStat(breathPts),
+        tone: skillStat(tonePts),
+        smoothness: skillStat(smoothPts),
+      },
     });
   };
 
