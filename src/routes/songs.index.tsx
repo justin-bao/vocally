@@ -202,6 +202,23 @@ function SongsList() {
   );
 }
 
+function Step({ n, icon, title, desc }: { n: number; icon: React.ReactNode; title: string; desc: string }) {
+  return (
+    <li className="flex items-start gap-3">
+      <div className="relative grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        {icon}
+        <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-primary text-[10px] font-black text-primary-foreground">
+          {n}
+        </span>
+      </div>
+      <div className="min-w-0">
+        <p className="font-display text-sm font-black">{title}</p>
+        <p className="text-xs text-muted-foreground">{desc}</p>
+      </div>
+    </li>
+  );
+}
+
 function relativeTime(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
