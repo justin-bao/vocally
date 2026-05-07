@@ -170,11 +170,12 @@ function Profile() {
       pushIf(tonePts, a.tone_quality, a.created_at);
       pushIf(smoothPts, a.smoothness, a.created_at);
     });
-    lessons.forEach((a: { pitch_score?: number | null; ai_feedback?: { breath_control?: number; tone_quality?: number; smoothness?: number } | null; created_at: string }) => {
+    lessons.forEach((a) => {
+      const fb = (a.ai_feedback || {}) as { breath_control?: number; tone_quality?: number; smoothness?: number };
       pushIf(pitchPts, a.pitch_score, a.created_at);
-      pushIf(breathPts, a.ai_feedback?.breath_control, a.created_at);
-      pushIf(tonePts, a.ai_feedback?.tone_quality, a.created_at);
-      pushIf(smoothPts, a.ai_feedback?.smoothness, a.created_at);
+      pushIf(breathPts, fb.breath_control, a.created_at);
+      pushIf(tonePts, fb.tone_quality, a.created_at);
+      pushIf(smoothPts, fb.smoothness, a.created_at);
     });
     const skillStat = (pts: SkillPoint[]) => {
       if (pts.length === 0) return { avg: null, recent: null, count: 0 };
