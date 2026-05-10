@@ -187,7 +187,7 @@ function DailyPractice() {
   }, [user]);
 
   if (loading || !user) {
-    return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
+    return <LoadingScreen label="Warming up…" />;
   }
 
   return (

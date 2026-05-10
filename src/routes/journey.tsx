@@ -63,7 +63,7 @@ function Journey() {
   }, [attempts, progress]);
 
   if (loading || !user) {
-    return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
+    return <LoadingScreen label="Tuning up…" />;
   }
 
   // Determine first uncompleted lesson (the "current" node)

@@ -97,7 +97,14 @@ function SongsList() {
 
       <div className="mx-auto max-w-2xl space-y-3 px-5 pt-6">
         {songs === null && (
-          <div className="rounded-3xl bg-card p-6 text-center text-muted-foreground card-pop">Loading…</div>
+          <div className="rounded-3xl bg-card p-6 text-center text-muted-foreground card-pop animate-fade-in">
+            <div className="flex items-center justify-center gap-2">
+              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-bounce-dot" />
+              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-bounce-dot [animation-delay:150ms]" />
+              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-bounce-dot [animation-delay:300ms]" />
+              <span className="ml-2 text-sm font-bold uppercase tracking-wide">Loading…</span>
+            </div>
+          </div>
         )}
         {songs && songs.length === 0 && (
           <div className="overflow-hidden rounded-3xl bg-card card-pop">

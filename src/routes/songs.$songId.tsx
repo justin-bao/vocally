@@ -183,7 +183,7 @@ function SongDetail() {
   };
 
   if (!song) {
-    return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
+    return <LoadingScreen label="Loading song…" />;
   }
 
   const plan = song.ai_plan as any;
