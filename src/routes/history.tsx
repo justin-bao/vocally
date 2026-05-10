@@ -72,7 +72,14 @@ function HistoryPage() {
 
       <div className="mx-auto max-w-2xl space-y-4 px-5 pt-6">
         {items === null && (
-          <div className="rounded-3xl bg-card p-6 text-center text-muted-foreground card-pop">Loading…</div>
+          <div className="rounded-3xl bg-card p-6 text-center text-muted-foreground card-pop animate-fade-in">
+            <div className="flex items-center justify-center gap-2">
+              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-bounce-dot" />
+              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-bounce-dot [animation-delay:150ms]" />
+              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-bounce-dot [animation-delay:300ms]" />
+              <span className="ml-2 text-sm font-bold uppercase tracking-wide">Loading…</span>
+            </div>
+          </div>
         )}
         {items && items.length === 0 && (
           <div className="rounded-3xl bg-card p-8 text-center card-pop">

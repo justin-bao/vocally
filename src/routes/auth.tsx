@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import { Mic } from "lucide-react";
+import { Spinner } from "@/components/loading-screen";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -90,7 +91,7 @@ function AuthPage() {
           disabled={busy}
           className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-border bg-background px-5 py-3 font-bold text-foreground card-pop disabled:opacity-60"
         >
-          <GoogleIcon /> Continue with Google
+          {busy ? <Spinner className="text-foreground" /> : <GoogleIcon />} Continue with Google
         </button>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
@@ -107,9 +108,10 @@ function AuthPage() {
           <Input value={password} onChange={setPassword} placeholder="Password" type="password" required minLength={6} />
           <button
             disabled={busy}
-            className="w-full rounded-2xl bg-primary px-5 py-3 font-extrabold uppercase tracking-wide text-primary-foreground btn-pop disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 font-extrabold uppercase tracking-wide text-primary-foreground btn-pop disabled:opacity-60"
           >
-            {busy ? "..." : mode === "login" ? "Sign in" : "Create account"}
+            {busy && <Spinner />}
+            {busy ? (mode === "login" ? "Signing in…" : "Creating…") : mode === "login" ? "Sign in" : "Create account"}
           </button>
         </form>
 

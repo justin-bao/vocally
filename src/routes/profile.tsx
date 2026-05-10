@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { LoadingScreen } from "@/components/loading-screen";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -248,7 +249,7 @@ function Profile() {
     toast.success("Name updated");
   };
   if (loading || !user) {
-    return <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">Loading…</div>;
+    return <LoadingScreen label="Loading profile…" />;
   }
 
   const todayStr = new Date().toISOString().slice(0, 10);
