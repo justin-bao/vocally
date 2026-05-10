@@ -1,5 +1,6 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth";
+import { LoadingScreen } from "@/components/loading-screen";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
@@ -69,11 +70,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { pathname, isNavigating } = useRouterState({
+    select: (s) => ({
+      pathname: s.location.pathname,
+      isNavigating: s.isLoading && !!s.resolvedLocation && s.location.href !== s.resolvedLocation.href,
+    }),
+  });
+
   return (
     <AuthProvider>
       <div key={pathname} className="page-enter">
-        <Outlet />
+        {isNavigating ? <LoadingScreen label="Loading next lesson…" /> : <Outlet />}
       </div>
       <Toaster richColors position="top-center" />
     </AuthProvider>
