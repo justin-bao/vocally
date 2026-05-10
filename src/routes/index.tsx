@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useEffect } from "react";
+import { LoadingScreen } from "@/components/loading-screen";
 import mascot from "@/assets/mascot.png";
 import { Mic, Sparkles, Trophy, Activity } from "lucide-react";
 
@@ -23,6 +24,12 @@ function Landing() {
   useEffect(() => {
     if (!loading && user) nav({ to: "/journey" });
   }, [user, loading, nav]);
+
+  // Avoid flashing the marketing landing while we know (or are about to know)
+  // the user is signed in and we're redirecting to /journey.
+  if (loading || user) {
+    return <LoadingScreen label="Tuning up…" />;
+  }
 
   return (
     <main className="min-h-screen bg-gradient-sunset">
