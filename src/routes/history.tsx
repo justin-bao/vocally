@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Music, Sparkles, Star } from "lucide-react";
+import { SkeletonList } from "@/components/skeletons";
 
 export const Route = createFileRoute("/history")({
   head: () => ({

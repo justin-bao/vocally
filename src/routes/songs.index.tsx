@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Plus, Music2, Trash2, Search, Mic, Sparkles } from "lucide-react";
+import { SkeletonList } from "@/components/skeletons";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/songs/")({
@@ -96,16 +97,7 @@ function SongsList() {
       </header>
 
       <div className="mx-auto max-w-2xl space-y-3 px-5 pt-6">
-        {songs === null && (
-          <div className="rounded-3xl bg-card p-6 text-center text-muted-foreground card-pop animate-fade-in">
-            <div className="flex items-center justify-center gap-2">
-              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-bounce-dot" />
-              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-bounce-dot [animation-delay:150ms]" />
-              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-bounce-dot [animation-delay:300ms]" />
-              <span className="ml-2 text-sm font-bold uppercase tracking-wide">Loading…</span>
-            </div>
-          </div>
-        )}
+        {songs === null && <SkeletonList count={4} withAvatar className="animate-fade-in" />}
         {songs && songs.length === 0 && (
           <div className="overflow-hidden rounded-3xl bg-card card-pop">
             <div className="bg-gradient-sunset px-6 py-8 text-center">
