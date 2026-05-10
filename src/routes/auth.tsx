@@ -91,7 +91,7 @@ function AuthPage() {
           disabled={busy}
           className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-border bg-background px-5 py-3 font-bold text-foreground card-pop disabled:opacity-60"
         >
-          <GoogleIcon /> Continue with Google
+          {busy ? <Spinner className="text-foreground" /> : <GoogleIcon />} Continue with Google
         </button>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
