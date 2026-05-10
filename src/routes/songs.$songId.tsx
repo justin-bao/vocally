@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LoadingScreen } from "@/components/loading-screen";
+import { SkeletonBox, SkeletonText, SkeletonCard, SkeletonList } from "@/components/skeletons";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -183,8 +184,35 @@ function SongDetail() {
     }
   };
 
-  if (!song) {
+  if (loading || !user) {
     return <LoadingScreen label="Loading song…" />;
+  }
+
+  if (!song) {
+    return (
+      <main className="min-h-screen bg-gradient-sunset pb-24">
+        <header className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur">
+          <div className="mx-auto flex max-w-2xl items-center justify-between px-5 py-3">
+            <Link to="/songs" className="grid h-9 w-9 place-items-center rounded-xl text-foreground hover:bg-muted">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <SkeletonText width="w-32" />
+            <div className="w-9" />
+          </div>
+        </header>
+        <div className="mx-auto max-w-2xl space-y-5 px-5 pt-6 animate-fade-in">
+          <div className="flex items-center gap-4 rounded-3xl bg-card p-4 card-pop">
+            <SkeletonBox className="h-20 w-20 rounded-2xl" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <SkeletonText width="w-3/5" className="h-5" />
+              <SkeletonText width="w-2/5" />
+            </div>
+          </div>
+          <SkeletonCard lines={4} />
+          <SkeletonList count={2} withAvatar={false} />
+        </div>
+      </main>
+    );
   }
 
   const plan = song.ai_plan as any;
