@@ -1,5 +1,13 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
+import {
+  Outlet,
+  Link,
+  createRootRoute,
+  HeadContent,
+  Scripts,
+  useRouterState,
+} from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth";
+import { LoadingScreen } from "@/components/loading-screen";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
@@ -10,9 +18,7 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          This page wandered off-key.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">This page wandered off-key.</p>
         <div className="mt-6">
           <Link
             to="/"
@@ -32,10 +38,17 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Vocally — Learn to sing, one lesson at a time" },
-      { name: "description", content: "Duolingo-style singing lessons with real-time pitch feedback and AI vocal coaching." },
+      {
+        name: "description",
+        content:
+          "Duolingo-style singing lessons with real-time pitch feedback and AI vocal coaching.",
+      },
       { name: "theme-color", content: "#FFB627" },
       { property: "og:title", content: "Vocally — Learn to sing" },
-      { property: "og:description", content: "Bite-sized singing lessons with live pitch feedback and AI coaching." },
+      {
+        property: "og:description",
+        content: "Bite-sized singing lessons with live pitch feedback and AI coaching.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -69,11 +82,18 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { pathname, isNavigating } = useRouterState({
+    select: (s) => ({
+      pathname: s.location.pathname,
+      isNavigating:
+        s.isLoading && !!s.resolvedLocation && s.location.href !== s.resolvedLocation.href,
+    }),
+  });
+
   return (
     <AuthProvider>
       <div key={pathname} className="page-enter">
-        <Outlet />
+        {isNavigating ? <LoadingScreen label="Loading next lesson…" /> : <Outlet />}
       </div>
       <Toaster richColors position="top-center" />
     </AuthProvider>
